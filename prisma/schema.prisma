@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Functionary {
+  id            Int    @id @default(autoincrement())
+  name          String
+  role          Role   @default(BASIC)
+  amountPerHour Int?
+  rhManagerId   Int?
+  tasks         Task[]
+  hoursWorked   Int
+  Team          Team?  @relation(fields: [teamId], references: [id])
+  teamId        Int?
+}
+
+model Team {
+  id              Int           @id @default(autoincrement())
+  teamDescription String
+  members         Functionary[]
+}
+
+model Task {
+  id            Int          @id @default(autoincrement())
+  description   String
+  gitHubRepoUrl String
+  Functionary   Functionary? @relation(fields: [functionaryId], references: [id])
+  functionaryId Int
+}
+
+enum Role {
+  BASIC
+  RH
+  MANAGER
+}
