@@ -47,6 +47,8 @@ app.use(bodyParser.json());
 //ROUTES:
 
 
+//USER ROUTES
+
 
   //REGISTER USER ROUTE:
 app.post('/signUp', (req, res) => {
@@ -78,7 +80,7 @@ app.post('/signIn', async (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query Users {Users {email id password role team userType fullName valuePerHour}}',
+      query: 'query Users {Users {email id password}}',
       variables: { },
     });
   }
@@ -109,7 +111,6 @@ app.post('/signIn', async (req, res) => {
 });
 
 
-
   //GET USER BY ID ROUTE
 app.get('/getUserByID', async (req, res) => {
 
@@ -136,6 +137,11 @@ app.get('/getUserByID', async (req, res) => {
   res.send({gotData : true, email: processedData.email, role: processedData.role, team: processedData.team, userType: processedData.userType, fullName: processedData.fullName, valuePerHour: processedData.valuePerHour});
   return 0;
 });
+
+
+//TEAM ROUTES
+
+
 
 
 
