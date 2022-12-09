@@ -56,18 +56,18 @@ app.post('/signUp', (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
-      query: 'mutation Mutation($email: String!, $password: String!, $role: String!, $team: String!, $userType: Int!, $fullName: String!, $valuePerHour: Int!) { createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email id password role team userType fullName valuePerHour}}',
-      variables: { email: req.body.email, password: req.body.password, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
+      query: 'mutation Mutation($email: String!, $password: String!) {createUser(email: $email, password: $password) {email password}}',
+      variables: { email: req.body.email, password: req.body.password },
     });
   }
   try{
     DBOperations();
   }catch(err){
-    res.send({signedUp : false});
+    res.send({status : false});
 
     return 0;
   }
-  res.send({signedUp : true});
+  res.send({status : true});
 });
 
 
@@ -90,7 +90,7 @@ app.post('/signIn', async (req, res) => {
     //Collected data:
     processedData = JSON.parse(JSON.stringify(data.data)).Users
   }catch(err){
-    res.send({signedIn : false, ERROR : true});
+    res.send({status : false, ERROR : true});
 
     return 0;
   }
@@ -100,18 +100,19 @@ app.post('/signIn', async (req, res) => {
   {
     if (processedData[i].email == req.body.email) {
       if (processedData[i].password == req.body.password) {
-        res.send({signedIn : true, role: processedData[i].role, team: processedData[i].team, userType: processedData[i].userType, fullName: processedData[i].fullName, userID: processedData[i].id});
+        res.send({status : true, role: processedData[i].role, team: processedData[i].team, userType: processedData[i].userType, fullName: processedData[i].fullName, userID: processedData[i].id});
         return 0;
       }
     }else if(i === processedData.length - 1){
-      res.send({signedIn : false});
+      res.send({status : false, ERROR : false});
       return 0;
     }
   }
 });
 
 
-  //GET USER BY ID ROUTE
+
+  //GET USER BY ID ROUTE:
 app.get('/getUserByID', async (req, res) => {
 
   let data, processedData;
@@ -119,7 +120,7 @@ app.get('/getUserByID', async (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query GetUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id}}',
+      query: 'query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id}}',
       variables: { id: req.body.userID },
     });
   }
@@ -129,20 +130,113 @@ app.get('/getUserByID', async (req, res) => {
     //Collected data:
     processedData = JSON.parse(JSON.stringify(data.data)).getUserById
   }catch(err){
-    res.send({gotData : false});
+    res.send({status : false});
 
     return 0;
   }
 
-  res.send({gotData : true, email: processedData.email, role: processedData.role, team: processedData.team, userType: processedData.userType, fullName: processedData.fullName, valuePerHour: processedData.valuePerHour});
+  res.send({status : true, email: processedData.email, role: processedData.role, team: processedData.team, userType: processedData.userType, fullName: processedData.fullName, valuePerHour: processedData.valuePerHour});
   return 0;
 });
 
 
-//TEAM ROUTES
+
+  //GET ALL USERS ROUTE:
+app.get('/getAllUsers', async (req, res) => {
+
+  let data, processedData;
+
+  //DataBase operations:
+  async function DBOperations() {
+    data = await apolloServer.executeOperation({
+      query: 'query Users {Users {id email role team fullName valuePerHour hoursWorked}}',
+      variables: { },
+    });
+  }
+  try{
+    await DBOperations();
+
+    //Collected data:
+    processedData = JSON.parse(JSON.stringify(data.data)).Users
+  }catch(err){
+    res.send({status : false});
+
+    return 0;
+  }
+
+  res.send(processedData);
+  return 0;
+});
 
 
 
+  //GET USER BY ID ROUTE:
+app.delete('/deleteUser', async (req, res) => {
+
+  let data, dataDeletedUserStatus, processedData, processedDataDeletedUserStatus;
+
+  //DataBase operations:
+  async function DBOperations() {
+    data = await apolloServer.executeOperation({
+      query: 'query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id hoursWorked}}',
+      variables: { id: req.body.userID },
+    });
+
+    dataDeletedUserStatus = await apolloServer.executeOperation({
+      query: 'mutation DeleteUser($deleteUserId: ID!) {deleteUser(id: $deleteUserId)}',
+      variables: { deleteUserId: req.body.userID },
+    });
+  }
+  try{
+    await DBOperations();
+
+    //Collected data:
+    processedData = JSON.parse(JSON.stringify(data.data)).getUserById
+    processedDataDeletedUserStatus = JSON.parse(JSON.stringify(dataDeletedUserStatus.data)).deleteUser
+  }catch(err){
+    res.send({ status : processedDataDeletedUserStatus });
+
+    return 0;
+  }
+
+  if(processedData.valuePerHour == true && processedData.hoursWorked == true || processedData.valuePerHour != null && processedData.hoursWorked != null){
+    let mustBePaid = processedData.valuePerHour * processedData.hoursWorked;
+    res.send({ status : processedDataDeletedUserStatus, mustBePaid : mustBePaid });
+  }else{
+    res.send({ status : processedDataDeletedUserStatus, mustBePaid : 0 });
+  }
+
+  return 0;
+});
+
+
+
+  //EDIT USER DATA ROUTE:
+app.put('/editUser', async (req, res) => {
+
+  let data, processedDataEditUserStatus;
+
+  //DataBase operations:
+  async function DBOperations() {
+    data = await apolloServer.executeOperation({
+      query: 'mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: Int, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}',
+      variables: { updateUserId: req.body.userId, email: req.body.email, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
+    });
+  }
+  try{
+    await DBOperations();
+
+    //Collected data:
+    processedDataEditUserStatus = JSON.parse(JSON.stringify(data.data)).updateUser
+  }catch(err){
+    res.send({status : false, ERROR : true});
+
+    return 0;
+  }
+
+  res.send({status : processedDataEditUserStatus, ERROR : false});
+  
+});
 
 
 app.listen(port, () => {
