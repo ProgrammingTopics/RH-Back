@@ -53,21 +53,23 @@ app.use(bodyParser.json());
   //REGISTER USER ROUTE:
 app.post('/signUp', (req, res) => {
 
+  let dataUpdatedUserStatus, processedDataUpdatedUserStatus;
+
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
-      query: 'mutation Mutation($email: String!, $password: String!) {createUser(email: $email, password: $password) {email password}}',
-      variables: { email: req.body.email, password: req.body.password },
+      query: 'mutation CreateUser($email: String!, $password: String!, $role: String, $team: String, $userType: Int, $fullName: String, $valuePerHour: Int) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}',
+      variables: { email: req.body.email, password: req.body.password, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
     });
   }
   try{
     DBOperations();
   }catch(err){
-    res.send({status : false});
+    res.send({status : false, ERROR: true});
 
     return 0;
   }
-  res.send({status : true});
+  res.send({status : true, ERROR: false});
 });
 
 
@@ -214,11 +216,11 @@ app.delete('/deleteUser', async (req, res) => {
   //EDIT USER DATA ROUTE:
 app.put('/editUser', async (req, res) => {
 
-  let data, processedDataEditUserStatus;
+  let dataEditUserStatus, processedDataEditUserStatus;
 
   //DataBase operations:
   async function DBOperations() {
-    data = await apolloServer.executeOperation({
+    dataEditUserStatus = await apolloServer.executeOperation({
       query: 'mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: Int, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}',
       variables: { updateUserId: req.body.userId, email: req.body.email, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
     });
@@ -227,7 +229,7 @@ app.put('/editUser', async (req, res) => {
     await DBOperations();
 
     //Collected data:
-    processedDataEditUserStatus = JSON.parse(JSON.stringify(data.data)).updateUser
+    processedDataEditUserStatus = JSON.parse(JSON.stringify(dataEditUserStatus.data)).updateUser
   }catch(err){
     res.send({status : false, ERROR : true});
 

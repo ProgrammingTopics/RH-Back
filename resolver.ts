@@ -33,8 +33,8 @@ export const resolvers = {
     },
     
     Mutation: {
-         async createUser(_, { email, password }){
-            const newUser = new User({ email, password});
+         async createUser(_, { email, password, role, team, userType, fullName, valuePerHour }){
+            const newUser = new User({ email, password, role, team, userType, fullName, valuePerHour });
             await newUser.save();
             return newUser;
         },
