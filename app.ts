@@ -50,6 +50,13 @@ app.use(bodyParser.json());
 //USER ROUTES
 
 
+
+  //TEST ROUTE:
+app.get('/', (req, res) => {
+  res.send({status : true});
+})
+
+
   //REGISTER USER ROUTE:
 app.post('/signUp', (req, res) => {
 
