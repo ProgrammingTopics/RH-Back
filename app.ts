@@ -110,26 +110,24 @@ app.post("/signIn", async (req, res) => {
   }
 
   //Login conditions and responses:
-  // for (var i = 0; i < processedData.length; i++) {
-  //   if (processedData[i].email == req.body.email) {
-  //     if (processedData[i].password == req.body.password) {
-  //       res.send({
-  //         status: true,
-  //         role: processedData[i].role,
-  //         team: processedData[i].team,
-  //         userType: "RH",
-  //         fullName: processedData[i].fullName,
-  //         userID: processedData[i].id,
-  //       });
-  //       return 0;
-  //     }
-  //   } else if (i === processedData.length - 1) {
-  //     res.send({ status: false });
-  //     return 0;
-  //   }
-  // }
-  res.send({ email: req.body.email, password: req.body.password });
-  return 0;
+  for (var i = 0; i < processedData.length; i++) {
+    if (processedData[i].email == req.body.email) {
+      if (processedData[i].password == req.body.password) {
+        res.send({
+          status: true,
+          role: processedData[i].role,
+          team: processedData[i].team,
+          userType: "RH",
+          fullName: processedData[i].fullName,
+          userID: processedData[i].id,
+        });
+        return 0;
+      }
+    } else if (i === processedData.length - 1) {
+      res.send({ status: false });
+      return 0;
+    }
+  }
 });
 
 //GET USER BY ID ROUTE:
