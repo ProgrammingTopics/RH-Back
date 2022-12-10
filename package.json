@@ -17,6 +17,7 @@
     "resolvers": "^1.0.0"
   },
   "scripts": {
-    "serve": "nodemon app.ts"
+    "serve": "nodemon app.ts",
+    "start": "nodemon app.ts"
   }
 }
