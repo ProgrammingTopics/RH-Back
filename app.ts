@@ -63,7 +63,7 @@ app.post('/signUp', (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
-      query: 'mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: Int!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}',
+      query: 'mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}',
       variables: { email: req.body.email, password: req.body.password, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
     });
   }
@@ -107,7 +107,7 @@ app.post('/signIn', async (req, res) => {
   {
     if (processedData[i].email == req.body.email) {
       if (processedData[i].password == req.body.password) {
-        res.send({status : true, role: processedData[i].role, team: processedData[i].team, userType: processedData[i].userType, fullName: processedData[i].fullName, userID: processedData[i].id});
+        res.send({status : true, role: processedData[i].role, team: processedData[i].team, userType: "RH", fullName: processedData[i].fullName, userID: processedData[i].id});
         return 0;
       }
     }else if(i === processedData.length - 1){
@@ -226,7 +226,7 @@ app.put('/editUser', async (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     dataEditUserStatus = await apolloServer.executeOperation({
-      query: 'mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: Int, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}',
+      query: 'mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: String, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}',
       variables: { updateUserId: req.body.userId, email: req.body.email, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
     });
   }
