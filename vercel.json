@@ -2,10 +2,6 @@
     "name": "rh-back",
     "version": 1,
     "public": true,
-    "build": {
-        "src": "app.ts",
-        "use": "@vercel/node"
-    },
     "routes":[
         {
             "src":"/(.*)",
