@@ -87,7 +87,7 @@ app.post('/signIn', async (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query Users {Users {email role userType fullName user id team}}',
+      query: 'query Users {Users {id role team userType fullName password email}}',
       variables: { },
     });
   }
@@ -95,7 +95,7 @@ app.post('/signIn', async (req, res) => {
     await DBOperations();
 
     //Collected data:
-    processedData = JSON.parse(JSON.stringify(data.data)).Users
+    processedData = JSON.parse(JSON.stringify(data.data)).Users;
   }catch(err){
     res.send({status : false});
 
