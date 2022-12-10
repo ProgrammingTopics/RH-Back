@@ -65,11 +65,11 @@ app.post('/signUp', (req, res) => {
   try{
     DBOperations();
   }catch(err){
-    res.send({status : false, ERROR: true});
+    res.send({status : false});
 
     return 0;
   }
-  res.send({status : true, ERROR: false});
+  res.send({status : true});
 });
 
 
@@ -92,7 +92,7 @@ app.post('/signIn', async (req, res) => {
     //Collected data:
     processedData = JSON.parse(JSON.stringify(data.data)).Users
   }catch(err){
-    res.send({status : false, ERROR : true});
+    res.send({status : false});
 
     return 0;
   }
@@ -106,7 +106,7 @@ app.post('/signIn', async (req, res) => {
         return 0;
       }
     }else if(i === processedData.length - 1){
-      res.send({status : false, ERROR : false});
+      res.send({status : false});
       return 0;
     }
   }
@@ -231,14 +231,17 @@ app.put('/editUser', async (req, res) => {
     //Collected data:
     processedDataEditUserStatus = JSON.parse(JSON.stringify(dataEditUserStatus.data)).updateUser
   }catch(err){
-    res.send({status : false, ERROR : true});
+    res.send({status : false});
 
     return 0;
   }
 
-  res.send({status : processedDataEditUserStatus, ERROR : false});
+  res.send({status : processedDataEditUserStatus});
   
 });
+
+
+
 
 app.post('/itsWorkTime', async(req, res)=>{
   let dataUpdateTimeStampStatus;
@@ -251,6 +254,69 @@ app.post('/itsWorkTime', async(req, res)=>{
     })
   }
 })
+
+
+
+  //TO DELEGATE TASK ROUTE:
+app.post('/delegateTask', async (req, res) => {
+
+  let dataDelegateTaskStatus, processedDataDelegateTaskStatus, dataAllTasks, processedDataAllTasks, taskName, taskId;
+
+  //DataBase operations:
+  async function DBOperations() {
+    dataAllTasks = await apolloServer.executeOperation({
+      query: 'query Tasks {Tasks {id name}}',
+      variables: { },
+    });
+
+    processedDataAllTasks = JSON.parse(JSON.stringify(dataAllTasks.data)).Tasks;
+
+    //Match the gave task name to an existing one to find the ID if it exists, else create a task with req informations.
+    for (var i=0 ; i < processedDataAllTasks.length ; i++)
+    {
+      if (processedDataAllTasks[i].name == req.body.name) {
+
+        taskId = processedDataAllTasks[i].id;
+        console.log(taskId);
+        break;
+
+      }else if(i === processedDataAllTasks.length - 1){
+
+        taskId = await apolloServer.executeOperation({
+          query: 'mutation CreateTask($name: String!) {createTask(name: $name) {id}}',
+          variables: { name: req.body.name },
+        });
+
+        taskId = JSON.parse(JSON.stringify(taskId.data)).createTask.id;
+        console.log(taskId);
+
+        await apolloServer.executeOperation({
+          query: 'mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl)}',
+          variables: { updateTaskId: taskId, description: req.body.description, githubUrl: req.body.githubUrl },
+        });
+
+      }
+    }
+
+    dataDelegateTaskStatus = await apolloServer.executeOperation({
+      query: 'mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}',
+      variables: { userId: req.body.userId, taskId: taskId },
+    });
+  }
+  try{
+    await DBOperations();
+
+    //Collected data:
+    processedDataDelegateTaskStatus = JSON.parse(JSON.stringify(dataDelegateTaskStatus.data)).giveUserTask
+  }catch(err){
+    res.send({status : false});
+
+    return 0;
+  }
+
+  res.send({status : processedDataDelegateTaskStatus});
+  
+});
 
 
 app.listen(port, () => {

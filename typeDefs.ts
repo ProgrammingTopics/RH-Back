@@ -6,11 +6,11 @@ type User {
     id: ID!
     email: String!
     password: String!
-    role: String
-    team: String
-    userType: Int
-    fullName: String
-    valuePerHour: Int
+    role: String!
+    team: String!
+    userType: Int!
+    fullName: String!
+    valuePerHour: Int!
     hoursWorked: Int
     lastTimeStamp: Int
     closedTasks: Int
