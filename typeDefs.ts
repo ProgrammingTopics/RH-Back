@@ -27,11 +27,16 @@ type Team{
 
 type Task{
     id: ID!
-    name: String, 
-    description: String,
-    status: String,
-    assigns: [String],
+    name: String
+    description: String
+    status: String
+    assigns: [String]
     github_url: String
+}
+
+type Card{
+    id: ID!
+    name:String
 }
 
 type Query {

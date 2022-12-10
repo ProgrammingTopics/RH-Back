@@ -61,9 +61,8 @@ export const resolvers = {
         async giveUserTask(_,{userID, taskID}){         //Insert a new task in User.tasks and a new assign in Task.assigns
             const newTask = (await Task.findById(taskID));
             const newUser = (await User.findById(userID));
-            const updated_user = (await User.updateOne({_id: userID},{$push:{tasks: {taskName: newTask.name, taskID: taskID}}}));
-            const updated_task = (await Task.updateOne({_id: taskID}, {$push:{assigns:{assignName:newUser.fullName, 
-                assignID: newUser._id}}})).modifiedCount;
+            const updated_user = (await User.updateOne({_id: userID},{$push:{tasks: taskID}})).modifiedCount;
+            const updated_task = (await Task.updateOne({_id: taskID}, {$push:{assigns: newUser._id}})).modifiedCount;
 
             return (updated_task && updated_user);
         },

@@ -1,5 +1,6 @@
 
 
+
 const mongoose = require('mongoose');
 
 export const User = mongoose.model("User", { 
@@ -7,7 +8,7 @@ export const User = mongoose.model("User", {
     password: String, 
     role: String, 
     team: String, 
-    userType: Number, 
+    userType: String, 
     fullName: String, 
     valuePerHour: Number, 
     hoursWorked: Number ,
