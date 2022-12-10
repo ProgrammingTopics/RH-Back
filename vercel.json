@@ -2,6 +2,11 @@
     "name": "rh-back",
     "version": 2,
     "public": true,
+    "builds": [{
+        "src": "app.ts",
+        "use": "@now/node"
+    }
+    ],
     "routes":[
         {
             "src":"/(.*)",
