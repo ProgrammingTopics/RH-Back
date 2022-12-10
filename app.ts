@@ -8,7 +8,7 @@ import cors from 'cors';
 
 const app = express();
 
-const port = 3015;
+const port = 8080;
 
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
