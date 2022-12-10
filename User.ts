@@ -10,6 +10,8 @@ export const User = mongoose.model("User", {
     userType: Number, 
     fullName: String, 
     valuePerHour: Number, 
-    hoursWorked: Number , 
+    hoursWorked: Number ,
+    lastTimeStamp: Number,
+    closedTasks: Number, 
     tasks: [String]
 });
