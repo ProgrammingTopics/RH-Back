@@ -1,6 +1,6 @@
 {
     "name": "rh-back",
-    "version": 1,
+    "version": 2,
     "public": true,
     "routes":[
         {
