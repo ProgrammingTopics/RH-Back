@@ -46,7 +46,7 @@ app.use(bodyParser.json());
 //CORS:
 
 app.use(crossOrigin({
-  origin: 'https://rh-back-roan.vercel.app/'
+  origin: '*'
 }))
 
 //ROUTES:
