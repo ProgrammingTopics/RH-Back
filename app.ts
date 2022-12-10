@@ -10,6 +10,7 @@ const app = express();
 
 const port = 8080;
 
+const crossOrigin = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 var db;
@@ -42,7 +43,11 @@ startServer();
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
 
+//CORS:
 
+app.use(crossOrigin({
+  origin: 'https://rh-back-roan.vercel.app/'
+}))
 
 //ROUTES:
 
@@ -58,7 +63,7 @@ app.post('/signUp', (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
-      query: 'mutation CreateUser($email: String!, $password: String!, $role: String, $team: String, $userType: Int, $fullName: String, $valuePerHour: Int) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}',
+      query: 'mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: Int!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}',
       variables: { email: req.body.email, password: req.body.password, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
     });
   }
