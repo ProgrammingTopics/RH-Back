@@ -18,7 +18,7 @@
   },
   "scripts": {
     "serve": "nodemon app.ts",
-    "start": "node app.ts",
+    "start": "node .",
     "dev": "nodemon app.ts"
   }
 }
