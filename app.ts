@@ -2,7 +2,7 @@ import express from "express";
 import { ApolloServer, gql } from "apollo-server-express";
 import { typeDefs } from "./typeDefs";
 import { resolvers } from "./resolver";
-import cors from 'cors';
+import cors from "cors";
 
 //CONST AND VAR INICIALIZATION:
 
@@ -10,163 +10,182 @@ const app = express();
 
 const port = 8080;
 
-const crossOrigin = require('cors');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+const crossOrigin = require("cors");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
 var db;
-
 
 //START SERVER CONFIGURATIONS:
 
 let apolloServer = null;
 async function startServer() {
   apolloServer = new ApolloServer({
-      typeDefs,
-      resolvers,
-      introspection: true,
+    typeDefs,
+    resolvers,
+    introspection: true,
   });
   await apolloServer.start();
   apolloServer.applyMiddleware({ app });
 
-  try{
-    await mongoose.connect("mongodb+srv://MarceloJM:IgorShinji@rhapplication0.c56rxpp.mongodb.net/?retryWrites=true&w=majority", {useNewUrlParser: true});
-  }catch(err){
+  try {
+    await mongoose.connect(
+      "mongodb+srv://MarceloJM:IgorShinji@rhapplication0.c56rxpp.mongodb.net/?retryWrites=true&w=majority",
+      { useNewUrlParser: true }
+    );
+  } catch (err) {
     console.log(err);
   }
 }
 db = mongoose.connection;
 startServer();
 
-
 //BODY PARSER:
 
-app.use(bodyParser.urlencoded({ extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //CORS:
 
-app.use(crossOrigin({
-  origin: '*'
-}))
+app.use(
+  crossOrigin({
+    origin: "*",
+  })
+);
 
 //ROUTES:
 
-
 //USER ROUTES
 
-
-  //REGISTER USER ROUTE:
-app.post('/signUp', (req, res) => {
-
+//REGISTER USER ROUTE:
+app.post("/signUp", (req, res) => {
   let dataUpdatedUserStatus, processedDataUpdatedUserStatus;
 
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
-      query: 'mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}',
-      variables: { email: req.body.email, password: req.body.password, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
+      query:
+        "mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}",
+      variables: {
+        email: req.body.email,
+        password: req.body.password,
+        role: req.body.role,
+        team: req.body.team,
+        userType: req.body.userType,
+        fullName: req.body.fullName,
+        valuePerHour: req.body.valuePerHour,
+      },
     });
   }
-  try{
+  try {
     DBOperations();
-  }catch(err){
-    res.send({status : false});
+  } catch (err) {
+    res.send({ status: false });
 
     return 0;
   }
-  res.send({status : true});
+  res.send({ status: true });
 });
 
-
-
-  //LOGIN USER ROUTE:
-app.post('/signIn', async (req, res) => {
-
+//LOGIN USER ROUTE:
+app.post("/signIn", async (req, res) => {
   let data, processedData;
 
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query Users {Users {id role team userType fullName password email}}',
-      variables: { },
+      query:
+        "query Users {Users {id role team userType fullName password email}}",
+      variables: {},
     });
   }
-  try{
+  try {
     await DBOperations();
 
     //Collected data:
     processedData = JSON.parse(JSON.stringify(data.data)).Users;
-  }catch(err){
-    res.send({status : false});
+  } catch (err) {
+    res.send({ status: false });
 
     return 0;
   }
- 
+
   //Login conditions and responses:
-  for (var i=0 ; i < processedData.length ; i++)
-  {
-    if (processedData[i].email == req.body.email) {
-      if (processedData[i].password == req.body.password) {
-        res.send({status : true, role: processedData[i].role, team: processedData[i].team, userType: "RH", fullName: processedData[i].fullName, userID: processedData[i].id});
-        return 0;
-      }
-    }else if(i === processedData.length - 1){
-      res.send({status : false});
-      return 0;
-    }
-  }
-});
-
-
-
-  //GET USER BY ID ROUTE:
-app.get('/getUserByID', async (req, res) => {
-
-  let data, processedData;
-
-  //DataBase operations:
-  async function DBOperations() {
-    data = await apolloServer.executeOperation({
-      query: 'query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id}}',
-      variables: { id: req.body.userID },
-    });
-  }
-  try{
-    await DBOperations();
-
-    //Collected data:
-    processedData = JSON.parse(JSON.stringify(data.data)).getUserById
-  }catch(err){
-    res.send({status : false});
-
-    return 0;
-  }
-
-  res.send({status : true, email: processedData.email, role: processedData.role, team: processedData.team, userType: processedData.userType, fullName: processedData.fullName, valuePerHour: processedData.valuePerHour});
+  // for (var i = 0; i < processedData.length; i++) {
+  //   if (processedData[i].email == req.body.email) {
+  //     if (processedData[i].password == req.body.password) {
+  //       res.send({
+  //         status: true,
+  //         role: processedData[i].role,
+  //         team: processedData[i].team,
+  //         userType: "RH",
+  //         fullName: processedData[i].fullName,
+  //         userID: processedData[i].id,
+  //       });
+  //       return 0;
+  //     }
+  //   } else if (i === processedData.length - 1) {
+  //     res.send({ status: false });
+  //     return 0;
+  //   }
+  // }
+  res.send({ email: req.body.email, password: req.body.password });
   return 0;
 });
 
-
-
-  //GET ALL USERS ROUTE:
-app.get('/getAllUsers', async (req, res) => {
-
+//GET USER BY ID ROUTE:
+app.get("/getUserByID", async (req, res) => {
   let data, processedData;
 
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query Users {Users {id email role team fullName valuePerHour hoursWorked}}',
-      variables: { },
+      query:
+        "query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id}}",
+      variables: { id: req.body.userID },
     });
   }
-  try{
+  try {
     await DBOperations();
 
     //Collected data:
-    processedData = JSON.parse(JSON.stringify(data.data)).Users
-  }catch(err){
-    res.send({status : false});
+    processedData = JSON.parse(JSON.stringify(data.data)).getUserById;
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  res.send({
+    status: true,
+    email: processedData.email,
+    role: processedData.role,
+    team: processedData.team,
+    userType: processedData.userType,
+    fullName: processedData.fullName,
+    valuePerHour: processedData.valuePerHour,
+  });
+  return 0;
+});
+
+//GET ALL USERS ROUTE:
+app.get("/getAllUsers", async (req, res) => {
+  let data, processedData;
+
+  //DataBase operations:
+  async function DBOperations() {
+    data = await apolloServer.executeOperation({
+      query:
+        "query Users {Users {id email role team fullName valuePerHour hoursWorked}}",
+      variables: {},
+    });
+  }
+  try {
+    await DBOperations();
+
+    //Collected data:
+    processedData = JSON.parse(JSON.stringify(data.data)).Users;
+  } catch (err) {
+    res.send({ status: false });
 
     return 0;
   }
@@ -175,120 +194,137 @@ app.get('/getAllUsers', async (req, res) => {
   return 0;
 });
 
-
-
-  //GET USER BY ID ROUTE:
-app.delete('/deleteUser', async (req, res) => {
-
-  let data, dataDeletedUserStatus, processedData, processedDataDeletedUserStatus;
+//GET USER BY ID ROUTE:
+app.delete("/deleteUser", async (req, res) => {
+  let data,
+    dataDeletedUserStatus,
+    processedData,
+    processedDataDeletedUserStatus;
 
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id hoursWorked}}',
+      query:
+        "query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id hoursWorked}}",
       variables: { id: req.body.userID },
     });
 
     dataDeletedUserStatus = await apolloServer.executeOperation({
-      query: 'mutation DeleteUser($deleteUserId: ID!) {deleteUser(id: $deleteUserId)}',
+      query:
+        "mutation DeleteUser($deleteUserId: ID!) {deleteUser(id: $deleteUserId)}",
       variables: { deleteUserId: req.body.userID },
     });
   }
-  try{
+  try {
     await DBOperations();
 
     //Collected data:
-    processedData = JSON.parse(JSON.stringify(data.data)).getUserById
-    processedDataDeletedUserStatus = JSON.parse(JSON.stringify(dataDeletedUserStatus.data)).deleteUser
-  }catch(err){
-    res.send({ status : processedDataDeletedUserStatus });
+    processedData = JSON.parse(JSON.stringify(data.data)).getUserById;
+    processedDataDeletedUserStatus = JSON.parse(
+      JSON.stringify(dataDeletedUserStatus.data)
+    ).deleteUser;
+  } catch (err) {
+    res.send({ status: processedDataDeletedUserStatus });
 
     return 0;
   }
 
-  if(processedData.valuePerHour == true && processedData.hoursWorked == true || processedData.valuePerHour != null && processedData.hoursWorked != null){
+  if (
+    (processedData.valuePerHour == true && processedData.hoursWorked == true) ||
+    (processedData.valuePerHour != null && processedData.hoursWorked != null)
+  ) {
     let mustBePaid = processedData.valuePerHour * processedData.hoursWorked;
-    res.send({ status : processedDataDeletedUserStatus, mustBePaid : mustBePaid });
-  }else{
-    res.send({ status : processedDataDeletedUserStatus, mustBePaid : 0 });
+    res.send({
+      status: processedDataDeletedUserStatus,
+      mustBePaid: mustBePaid,
+    });
+  } else {
+    res.send({ status: processedDataDeletedUserStatus, mustBePaid: 0 });
   }
 
   return 0;
 });
 
-
-
-  //EDIT USER DATA ROUTE:
-app.put('/editUser', async (req, res) => {
-
+//EDIT USER DATA ROUTE:
+app.put("/editUser", async (req, res) => {
   let dataEditUserStatus, processedDataEditUserStatus;
 
   //DataBase operations:
   async function DBOperations() {
     dataEditUserStatus = await apolloServer.executeOperation({
-      query: 'mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: String, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}',
-      variables: { updateUserId: req.body.userId, email: req.body.email, role: req.body.role, team: req.body.team, userType: req.body.userType, fullName: req.body.fullName, valuePerHour: req.body.valuePerHour },
+      query:
+        "mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: String, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}",
+      variables: {
+        updateUserId: req.body.userId,
+        email: req.body.email,
+        role: req.body.role,
+        team: req.body.team,
+        userType: req.body.userType,
+        fullName: req.body.fullName,
+        valuePerHour: req.body.valuePerHour,
+      },
     });
   }
-  try{
+  try {
     await DBOperations();
 
     //Collected data:
-    processedDataEditUserStatus = JSON.parse(JSON.stringify(dataEditUserStatus.data)).updateUser
-  }catch(err){
-    res.send({status : false});
+    processedDataEditUserStatus = JSON.parse(
+      JSON.stringify(dataEditUserStatus.data)
+    ).updateUser;
+  } catch (err) {
+    res.send({ status: false });
 
     return 0;
   }
 
-  res.send({status : processedDataEditUserStatus});
-  
+  res.send({ status: processedDataEditUserStatus });
 });
 
-
-
-
-app.post('/itsWorkTime', async(req, res)=>{
+app.post("/itsWorkTime", async (req, res) => {
   let dataUpdateTimeStampStatus;
 
   //DataBase operations:
   async function DBOperations() {
     dataUpdateTimeStampStatus = await apolloServer.executeOperation({
-      query: 'mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}',
-      variables:{setTimeStampId: req.body.userId, lastTimeStamp: req.body.TimeStamp}
-    })
+      query:
+        "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
+      variables: {
+        setTimeStampId: req.body.userId,
+        lastTimeStamp: req.body.TimeStamp,
+      },
+    });
   }
-})
+});
 
-
-
-  //TO DELEGATE TASK ROUTE:
-app.post('/delegateTask', async (req, res) => {
-
-  let dataDelegateTaskStatus, processedDataDelegateTaskStatus, dataAllTasks, processedDataAllTasks, taskName, taskId;
+//TO DELEGATE TASK ROUTE:
+app.post("/delegateTask", async (req, res) => {
+  let dataDelegateTaskStatus,
+    processedDataDelegateTaskStatus,
+    dataAllTasks,
+    processedDataAllTasks,
+    taskName,
+    taskId;
 
   //DataBase operations:
   async function DBOperations() {
     dataAllTasks = await apolloServer.executeOperation({
-      query: 'query Tasks {Tasks {id name}}',
-      variables: { },
+      query: "query Tasks {Tasks {id name}}",
+      variables: {},
     });
 
     processedDataAllTasks = JSON.parse(JSON.stringify(dataAllTasks.data)).Tasks;
 
     //Match the gave task name to an existing one to find the ID if it exists, else create a task with req informations.
-    for (var i=0 ; i < processedDataAllTasks.length ; i++)
-    {
+    for (var i = 0; i < processedDataAllTasks.length; i++) {
       if (processedDataAllTasks[i].name == req.body.name) {
-
         taskId = processedDataAllTasks[i].id;
         console.log(taskId);
         break;
-
-      }else if(i === processedDataAllTasks.length - 1){
-
+      } else if (i === processedDataAllTasks.length - 1) {
         taskId = await apolloServer.executeOperation({
-          query: 'mutation CreateTask($name: String!) {createTask(name: $name) {id}}',
+          query:
+            "mutation CreateTask($name: String!) {createTask(name: $name) {id}}",
           variables: { name: req.body.name },
         });
 
@@ -296,35 +332,39 @@ app.post('/delegateTask', async (req, res) => {
         console.log(taskId);
 
         await apolloServer.executeOperation({
-          query: 'mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl)}',
-          variables: { updateTaskId: taskId, description: req.body.description, githubUrl: req.body.githubUrl },
+          query:
+            "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl)}",
+          variables: {
+            updateTaskId: taskId,
+            description: req.body.description,
+            githubUrl: req.body.githubUrl,
+          },
         });
-
       }
     }
 
     dataDelegateTaskStatus = await apolloServer.executeOperation({
-      query: 'mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}',
+      query:
+        "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
       variables: { userId: req.body.userId, taskId: taskId },
     });
   }
-  try{
+  try {
     await DBOperations();
 
     //Collected data:
-    processedDataDelegateTaskStatus = JSON.parse(JSON.stringify(dataDelegateTaskStatus.data)).giveUserTask
-  }catch(err){
-    res.send({status : false});
+    processedDataDelegateTaskStatus = JSON.parse(
+      JSON.stringify(dataDelegateTaskStatus.data)
+    ).giveUserTask;
+  } catch (err) {
+    res.send({ status: false });
 
     return 0;
   }
 
-  res.send({status : processedDataDelegateTaskStatus});
-  
+  res.send({ status: processedDataDelegateTaskStatus });
 });
-
 
 app.listen(port, () => {
   console.log(`Timezones by location application is running on port ${port}.`);
 });
-
