@@ -87,7 +87,7 @@ app.post('/signIn', async (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
-      query: 'query Users {Users {email id password}}',
+      query: 'query Users {Users {email role userType fullName user id team}}',
       variables: { },
     });
   }
