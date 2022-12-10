@@ -3,7 +3,7 @@ import { Team } from "./Team";
 import { User } from "./User";
 
 export const resolvers = {
-    Query: {
+    Query: {                // Searchs in DB
         Name:() => 'RHDB',
         async Users() { 
             return await User.find()
@@ -32,7 +32,7 @@ export const resolvers = {
 
     },
     
-    Mutation: {
+    Mutation: {         //Modifications in DB
          async createUser(_, { email, password, role, team, userType, fullName, valuePerHour }){
             const newUser = new User({ email, password, role, team, userType, fullName, valuePerHour });
             await newUser.save();
@@ -46,14 +46,19 @@ export const resolvers = {
         } ,       
 
         async updateUser(_,{id,email, role, team, userType, fullName, valuePerHour} ){
-                const updated = (await User.updateOne({_id: id}, {email: email, role: role, team: team, 
-                userType: userType, fullName: fullName, valuePerHour: valuePerHour})).modifiedCount;
+            const updated = (await User.updateOne({_id: id}, {email: email, role: role, team: team, 
+            userType: userType, fullName: fullName, valuePerHour: valuePerHour})).modifiedCount;
 
-                return updated; 
+            return updated; 
               
         },
 
-        async giveUserTask(_,{userID, taskID}){
+        async setTimeStamp(_,{id,lastTimeStamp}){
+            const updated = (await User.updateOne({_id: id}, {lastTimeStamp: lastTimeStamp})).modifiedCount;
+            return updated;
+        },
+
+        async giveUserTask(_,{userID, taskID}){         //Insert a new task in User.tasks and a new assign in Task.assigns
             const newTask = (await Task.findById(taskID));
             const newUser = (await User.findById(userID));
             const updated_user = (await User.updateOne({_id: userID},{$push:{tasks: {taskName: newTask.name, taskID: taskID}}}));
@@ -63,8 +68,8 @@ export const resolvers = {
             return (updated_task && updated_user);
         },
 
-        async createTeam(_, {name}){
-            const newTeam = new Team({name});
+        async createTeam(_, {name, RHManager}){
+            const newTeam = new Team({name, RHManager});
             await newTeam.save();
             return newTeam;
         },
@@ -81,7 +86,7 @@ export const resolvers = {
             return updated;
         },
 
-        async newMemberTeam(_,{teamID, userID}){
+        async newMemberTeam(_,{teamID, userID}){        //Insert a new User in Team.members and update Team.team
 
             const newMember = (await User.findById(userID));
             const newTeam = (await Team.findById(teamID));
@@ -91,7 +96,7 @@ export const resolvers = {
             return (updated_team && updated_user);
         },
 
-        async defineTechLead(_,{teamID,techID}){
+        async defineTechLead(_,{teamID,techID}){    //Verify if the User is a team's member before set him as TechLead
             let isMember = false;
             let updated
             const newTech = techID
@@ -105,6 +110,24 @@ export const resolvers = {
                 updated = (await Team.updateOne({_id: teamID},{techLead: newTech})).modifiedCount;
             else
                 updated = false
+            return updated;
+        },
+
+        async createTask(_,{name}){
+            const newTask = new Task({name});
+            await newTask.save();
+            return newTask;
+
+        },
+
+        async deleteTask(_,{id}){
+            const deleted = (await Task.deleteOne({_id: id})).deletedCount;
+            return deleted;
+        },
+
+        async updateTask(_, {id,name, description,status, github_url}){
+            const updated = (await Task.updateOne({_id: id}, {name: name, description: description, 
+                status: status, github_url: github_url})).modifiedCount;
             return updated;
         }
     }

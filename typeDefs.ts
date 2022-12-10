@@ -12,6 +12,8 @@ type User {
     fullName: String
     valuePerHour: Int
     hoursWorked: Int
+    lastTimeStamp: Int
+    closedTasks: Int
     tasks: [String]
 }
 
@@ -26,6 +28,7 @@ type Team{
 type Task{
     id: ID!
     name: String, 
+    description: String,
     status: String,
     assigns: [String],
     github_url: String
@@ -53,9 +56,10 @@ type Mutation {
     deleteUser(id: ID!): Boolean
     updateUser(id: ID!, email: String, role: String, team: String, userType: Int, 
         fullName: String, valuePerHour: Int): Boolean
+    setTimeStamp(id: ID!, lastTimeStamp: Int): Boolean
     giveUserTask(userID: ID!, taskID: ID!): Boolean
 
-    createTeam(name: String!): Team!
+    createTeam(name: String!, RHManager: String!): Team!
     deleteTeam(id: ID!): Boolean
     updateTeam(id: ID!, name: String, RHManager: String): Boolean
     newMemberTeam(teamID: ID!, userID: ID!): Boolean
@@ -63,7 +67,8 @@ type Mutation {
 
     createTask(name: String!): Task!
     deleteTask(id: ID!): Boolean
-    updateTask(id: ID!, name: String, status: String, github_url: String): Boolean
+    updateTask(id: ID!, name: String, description: String,status: String, github_url: String): Boolean
+
 
 }
 

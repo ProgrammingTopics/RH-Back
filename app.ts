@@ -240,6 +240,18 @@ app.put('/editUser', async (req, res) => {
   
 });
 
+app.post('/itsWorkTime', async(req, res)=>{
+  let dataUpdateTimeStampStatus;
+
+  //DataBase operations:
+  async function DBOperations() {
+    dataUpdateTimeStampStatus = await apolloServer.executeOperation({
+      query: 'mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}',
+      variables:{setTimeStampId: req.body.userId, lastTimeStamp: req.body.TimeStamp}
+    })
+  }
+})
+
 
 app.listen(port, () => {
   console.log(`Timezones by location application is running on port ${port}.`);
