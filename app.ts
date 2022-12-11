@@ -365,7 +365,8 @@ app.post("/endWorkRoutine", async (req, res) => {
     processedDataUserTimeStamp,
     processedDataUserhoursWorked,
     calculatedWorkedJourney,
-    hoursWorked;
+    hoursWorked,
+    test;
 
   async function DBOperations() {
     dataUserTimeStamp = await apolloServer.executeOperation({
@@ -380,37 +381,28 @@ app.post("/endWorkRoutine", async (req, res) => {
       JSON.stringify(dataUserTimeStamp.data)
     ).getUserById.lastTimeStamp;
 
-    console.log(processedDataUserTimeStamp);
-
     processedDataUserhoursWorked = JSON.parse(
       JSON.stringify(dataUserTimeStamp.data)
     ).getUserById.hoursWorked;
 
-    console.log(processedDataUserhoursWorked);
-
     if (processedDataUserTimeStamp != 0) {
       console.log("Entrei");
-      calculatedWorkedJourney =
-        parseInt(req.body.timeStamp) - processedDataUserTimeStamp;
-      console.log(calculatedWorkedJourney);
-      const date = new Date(calculatedWorkedJourney);
-      hoursWorked = date.getHours();
-      if (hoursWorked > 8) hoursWorked = 8;
-      hoursWorked += processedDataUserhoursWorked;
-      console.log(hoursWorked);
+      calculatedWorkedJourney = parseInt(req.body.timeStamp) - processedDataUserTimeStamp;
 
-      processedDataUpdateTimeStampStatus = await apolloServer.executeOperation({
+      hoursWorked = processedDataUserhoursWorked + calculatedWorkedJourney;
+
+      test = await apolloServer.executeOperation({
         query:
-          "mutation Mutation($Id: ID!, $hoursWorked: Int, $lastTimeStamp: Int) {setTimeStamp(id: $Id, lastTimeStamp: $lastTimeStamp)setTimeHoursWorked(id: $Id, hoursWorked: $hoursWorked)}",
+          "mutation Mutation($id: ID!, $hoursWorked: Int, $lastTimeStamp: Int) {setTimeStamp(id: $id, lastTimeStamp: $lastTimeStamp) setTimeHoursWorked(id: $id, hoursWorked: $hoursWorked)}",
         variables: {
-          Id: req.body.userId,
+          id: req.body.userId,
           lastTimeStamp: 0,
           hoursWorked: hoursWorked,
         },
       });
-      console.log(processedDataUpdateTimeStampStatus);
     } else {
       res.send({ status: false});
+
       return 0;
     }
   }
@@ -418,17 +410,13 @@ app.post("/endWorkRoutine", async (req, res) => {
   try {
     await DBOperations();
 
-    //Collected data:
-    processedDataUpdateTimeStampStatus = JSON.parse(
-      JSON.stringify(dataUpdateTimeStampStatus.data)
-    );
   } catch (err) {
     res.send({ status: false });
 
     return 0;
   }
 
-  res.send({ status: processedDataUpdateTimeStampStatus });
+  res.send({ status: true });
 });
 
 //TO DELEGATE TASK ROUTE:

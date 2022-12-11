@@ -128,6 +128,11 @@ export const resolvers = {
             const updated = (await Task.updateOne({_id: id}, {name: name, description: description, 
                 status: status, github_url: github_url})).modifiedCount;
             return updated;
-        }
+        },
+
+        async setTimeHoursWorked(_,{id,hoursWorked}){
+            const updated = (await User.updateOne({_id: id}, {hoursWorked: hoursWorked})).modifiedCount;
+            return updated;
+        },
     }
 }

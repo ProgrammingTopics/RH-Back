@@ -74,7 +74,7 @@ type Mutation {
     deleteTask(id: ID!): Boolean
     updateTask(id: ID!, name: String, description: String,status: String, github_url: String): Boolean
 
-
+    setTimeHoursWorked(id: ID!, hoursWorked: Int): Boolean
 }
 
 `;
