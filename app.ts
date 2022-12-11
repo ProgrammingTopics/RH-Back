@@ -267,7 +267,7 @@ app.put("/editUser", async (req, res) => {
         team: req.body.team,
         userType: req.body.userType,
         fullName: req.body.fullName,
-        valuePerHour: req.body.valuePerHour,
+        valuePerHour: parseInt(req.body.valuePerHour),
       },
     });
   }
@@ -311,7 +311,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
           "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
         variables: {
           setTimeStampId: req.body.userId,
-          lastTimeStamp: req.body.TimeStamp,
+          lastTimeStamp: parseInt(req.body.TimeStamp),
         },
       });
     }else{
