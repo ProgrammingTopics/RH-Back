@@ -441,11 +441,12 @@ app.post("/delegateTask", async (req, res) => {
 
     await apolloServer.executeOperation({
       query:
-        "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl)}",
+        "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String, $status: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl, status: $status)}",
       variables: {
         updateTaskId: taskId,
         description: req.body.description,
         githubUrl: req.body.githubUrl,
+        status: "onGoing",
       },
     });
   }
@@ -622,6 +623,27 @@ app.get("/getTasksByTeam", async (req, res) => {
 
   res.send(processedTasksInTeam);
   return 0;
+});
+
+//CHANGE TASK STATU:
+app.put("/changeTaskStatus", async (req, res) => {
+  //DataBase operations:
+  async function DBOperations() {
+    await apolloServer.executeOperation({
+      query: "mutation UpdateTask($updateTaskId: ID!, $status: String) {updateTask(id: $updateTaskId, status: $status)}",
+      variables: { updateTaskId: req.body.taskId, status: "Completed" },
+    });
+
+  }
+  try {
+    await DBOperations();
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  res.send({ status: true });
 });
 
 app.listen(port, () => {
