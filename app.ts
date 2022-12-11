@@ -58,11 +58,11 @@ app.use(
 
 //REGISTER USER ROUTE:
 app.post("/signUp", (req, res) => {
-  let dataUpdatedUserStatus, processedDataUpdatedUserStatus;
+  let data, processedData;
 
   //DataBase operations:
   async function DBOperations() {
-    await apolloServer.executeOperation({
+    data = await apolloServer.executeOperation({
       query:
         "mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}",
       variables: {
@@ -78,12 +78,21 @@ app.post("/signUp", (req, res) => {
   }
   try {
     DBOperations();
+
+    processedData = JSON.parse(JSON.stringify(data.data)).Users;
   } catch (err) {
     res.send({ status: false });
 
     return 0;
   }
-  res.send({ status: true });
+
+  if(processedData){
+    res.send({ status: true });
+  }else{
+    res.send({ status: false });
+  }
+
+  res.send(req.body);
 });
 
 //LOGIN USER ROUTE:
@@ -192,7 +201,7 @@ app.get("/getAllUsers", async (req, res) => {
   return 0;
 });
 
-//GET USER BY ID ROUTE:
+//GET USER BY ID ROUTE: !
 app.delete("/deleteUser", async (req, res) => {
   let data,
     dataDeletedUserStatus,
@@ -279,20 +288,52 @@ app.put("/editUser", async (req, res) => {
   res.send({ status: processedDataEditUserStatus });
 });
 
-app.post("/itsWorkTime", async (req, res) => {
-  let dataUpdateTimeStampStatus;
+//SET INITIAL WORK ROUTINE:
+app.post("/initialWorkRoutine", async (req, res) => {
+  let dataUpdateTimeStampStatus, processedDataUpdateTimeStampStatus, dataUserTimeStamp, processedDataUserTimeStamp;
 
   //DataBase operations:
   async function DBOperations() {
-    dataUpdateTimeStampStatus = await apolloServer.executeOperation({
+    dataUserTimeStamp = await apolloServer.executeOperation({
       query:
-        "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
+        "query GetUserById($id: ID!) {getUserById(ID: $id) {lastTimeStamp}}",
       variables: {
-        setTimeStampId: req.body.userId,
-        lastTimeStamp: req.body.TimeStamp,
+        id: req.body.userId
       },
     });
+
+    processedDataUserTimeStamp = JSON.parse(
+      JSON.stringify(dataUserTimeStamp.data)
+    ).GetUserById.id;
+
+    if(processedDataUserTimeStamp == null){
+      dataUpdateTimeStampStatus = await apolloServer.executeOperation({
+        query:
+          "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
+        variables: {
+          setTimeStampId: req.body.userId,
+          lastTimeStamp: req.body.TimeStamp,
+        },
+      });
+    }else{
+      res.send({ status: false });
+      return 0;
+    }
   }
+  try {
+    await DBOperations();
+
+    //Collected data:
+    processedDataUpdateTimeStampStatus = JSON.parse(
+      JSON.stringify(dataUpdateTimeStampStatus.data)
+    ).updateUser;
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  res.send({ status: processedDataUpdateTimeStampStatus });
 });
 
 //TO DELEGATE TASK ROUTE:
@@ -304,6 +345,21 @@ app.post("/delegateTask", async (req, res) => {
     taskName,
     taskId;
 
+  //Create task function:
+  async function CreateTask() {
+    taskId = await apolloServer.executeOperation({
+      query: 'mutation CreateTask($name: String!) {createTask(name: $name) {id}}',
+      variables: { name: req.body.name },
+    });
+
+    taskId = JSON.parse(JSON.stringify(taskId.data)).createTask.id;
+
+    await apolloServer.executeOperation({
+      query: 'mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl)}',
+      variables: { updateTaskId: taskId, description: req.body.description, githubUrl: req.body.githubUrl },
+    });
+  }
+
   //DataBase operations:
   async function DBOperations() {
     dataAllTasks = await apolloServer.executeOperation({
@@ -314,35 +370,20 @@ app.post("/delegateTask", async (req, res) => {
     processedDataAllTasks = JSON.parse(JSON.stringify(dataAllTasks.data)).Tasks;
     console.log(processedDataAllTasks);
 
+    if(processedDataAllTasks.length == 0){
+      CreateTask();
+    }else{
     //Match the gave task name to an existing one to find the ID if it exists, else create a task with req informations.
-    for (var i = 0; i < processedDataAllTasks.length; i++) {
-      if (processedDataAllTasks[i].name == req.body.name) {
-        taskId = processedDataAllTasks[i].id;
-        console.log(taskId);
-        break;
-      } else if (i === processedDataAllTasks.length - 1) {
-        taskId = await apolloServer.executeOperation({
-          query:
-            "mutation CreateTask($name: String!) {createTask(name: $name) {id}}",
-          variables: { name: req.body.name },
-        });
-
-        taskId = JSON.parse(JSON.stringify(taskId.data)).createTask.id;
-
-        await apolloServer.executeOperation({
-          query:
-            "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl)}",
-          variables: {
-            updateTaskId: taskId,
-            description: req.body.description,
-            githubUrl: req.body.githubUrl,
-          },
-        });
+      for (var i=0 ; i < processedDataAllTasks.length ; i++)
+      {
+        if (processedDataAllTasks[i].name == req.body.name) {
+          taskId = processedDataAllTasks[i].id;
+          break;
+        }else if(i === processedDataAllTasks.length - 1){
+          CreateTask()
+        }
       }
     }
-
-    console.log(taskId);
-
     dataDelegateTaskStatus = await apolloServer.executeOperation({
       query:
         "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
