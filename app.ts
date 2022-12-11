@@ -68,7 +68,7 @@ app.post("/signUp", (req, res) => {
         password: req.body.password,
         role: req.body.role,
         team: req.body.team,
-        userType: "Manager",
+        userType: req.body.userType,
         fullName: req.body.fullName,
         valuePerHour: parseInt(req.body.valuePerHour),
       },
@@ -116,7 +116,7 @@ app.post("/signIn", async (req, res) => {
           status: true,
           role: processedData[i].role,
           team: processedData[i].team,
-          userType: "RH",
+          userType: "Manager",
           fullName: processedData[i].fullName,
           userID: processedData[i].id,
         });
