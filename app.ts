@@ -142,7 +142,7 @@ app.get("/getUserByID", async (req, res) => {
     data = await apolloServer.executeOperation({
       query:
         "query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id}}",
-      variables: { id: req.query.userID },
+      variables: { id: req.query.userId },
     });
   }
   try {
@@ -171,6 +171,7 @@ app.get("/getUserByID", async (req, res) => {
 //GET ALL USERS ROUTE:
 app.get("/getAllUsers", async (req, res) => {
   let data, processedData;
+  let processedDataArray = [];
 
   //DataBase operations:
   async function DBOperations() {
@@ -191,7 +192,20 @@ app.get("/getAllUsers", async (req, res) => {
     return 0;
   }
 
-  res.send(processedData);
+  processedData.forEach((user)=>{
+    processedDataArray.push({
+      userId : user.id, 
+      email : user.email, 
+      role : user.role, 
+      team : user.team, 
+      fullName : user.fullName,
+      valuePerHour : user.valuePerHour,
+      hoursWorked : user.hoursWorked,
+      userType : user.userType
+    })
+  })
+
+  res.send(processedDataArray);
   return 0;
 });
 
@@ -247,15 +261,6 @@ app.delete("/deleteUser", async (req, res) => {
 
 //EDIT USER DATA ROUTE:
 app.put("/editUser", async (req, res) => {
-  console.log({
-    updateUserId: req.body.userId,
-    email: req.body.email,
-    role: req.body.role,
-    team: req.body.team,
-    userType: req.body.userType,
-    fullName: req.body.fullName,
-    valuePerHour: parseInt(req.body.valuePerHour),
-  });
   let dataEditUserStatus,
     processedDataEditUserStatus,
     dataUser,
