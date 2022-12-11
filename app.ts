@@ -312,6 +312,7 @@ app.post("/delegateTask", async (req, res) => {
     });
 
     processedDataAllTasks = JSON.parse(JSON.stringify(dataAllTasks.data)).Tasks;
+    console.log(processedDataAllTasks);
 
     //Match the gave task name to an existing one to find the ID if it exists, else create a task with req informations.
     for (var i = 0; i < processedDataAllTasks.length; i++) {
@@ -327,7 +328,6 @@ app.post("/delegateTask", async (req, res) => {
         });
 
         taskId = JSON.parse(JSON.stringify(taskId.data)).createTask.id;
-        console.log(taskId);
 
         await apolloServer.executeOperation({
           query:
@@ -341,11 +341,15 @@ app.post("/delegateTask", async (req, res) => {
       }
     }
 
+    console.log(taskId);
+
     dataDelegateTaskStatus = await apolloServer.executeOperation({
       query:
         "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
       variables: { userId: req.body.userId, taskId: taskId },
     });
+
+    console.log(dataDelegateTaskStatus);
   }
   try {
     await DBOperations();

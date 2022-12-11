@@ -90,8 +90,8 @@ export const resolvers = {
             const newMember = (await User.findById(userID));
             const newTeam = (await Team.findById(teamID));
             const updated_team = (await Team.updateOne({_id: teamID}, 
-                {$push:{members: {memberID: newMember._id, name: newMember.fullName, role: newMember.role}}})).modifiedCount;
-            const updated_user = (await User.updateOne({_id: userID}, {team: {teamName: newTeam.name, teamID: teamID}})).modifiedCount;
+                {$push:{members: newMember._id}})).modifiedCount;
+            const updated_user = (await User.updateOne({_id: userID}, {team: teamID})).modifiedCount;
             return (updated_team && updated_user);
         },
 
