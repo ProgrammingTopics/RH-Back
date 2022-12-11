@@ -501,6 +501,40 @@ app.post("/delegateTask", async (req, res) => {
   res.send({ status: processedDataDelegateTaskStatus });
 });
 
+//GET TEAM BY NAME:
+app.get("/getTeamByName", async (req, res) => {
+  let data, processedData, usersInTeam;
+
+  //DataBase operations:
+  async function DBOperations() {
+    data = await apolloServer.executeOperation({
+      query:
+        "query Users {Users {team fullName}}",
+      variables: {},
+    });
+  }
+  try {
+    await DBOperations();
+
+    //Collected data:
+    processedData = JSON.parse(JSON.stringify(data.data)).Users;
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  //Login conditions and responses:
+  for (var i = 0; i < processedData.length; i++) {
+    if (processedData[i].team == req.query.team) {
+      usersInTeam.push({fullName: processedData[i].fullName});
+    } else if (i === processedData.length - 1) {
+      res.send({ status: false });
+      return 0;
+    }
+  }
+});
+
 app.listen(port, () => {
   console.log(`Timezones by location application is running on port ${port}.`);
 });
