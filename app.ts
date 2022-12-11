@@ -81,7 +81,8 @@ app.post("/signUp", (req, res) => {
 
     processedData = JSON.parse(JSON.stringify(data.data)).Users;
   } catch (err) {
-    res.send({ status: false });
+    res.send(req.body);
+    //res.send({ status: false });
 
     return 0;
   }
