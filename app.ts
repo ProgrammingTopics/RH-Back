@@ -86,13 +86,14 @@ app.post("/signUp", (req, res) => {
     return 0;
   }
 
+  res.send(req.body);
+
   if(processedData){
     res.send({ status: true });
   }else{
     res.send({ status: false });
   }
 
-  res.send(req.body);
 });
 
 //LOGIN USER ROUTE:
