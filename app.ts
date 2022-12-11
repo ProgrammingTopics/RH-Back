@@ -193,18 +193,18 @@ app.get("/getAllUsers", async (req, res) => {
     return 0;
   }
 
-  processedData.forEach((user)=>{
+  processedData.forEach((user) => {
     processedDataArray.push({
-      userId : user.id, 
-      email : user.email, 
-      role : user.role, 
-      team : user.team, 
-      fullName : user.fullName,
-      valuePerHour : user.valuePerHour,
-      hoursWorked : user.hoursWorked,
-      userType : user.userType
-    })
-  })
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      team: user.team,
+      fullName: user.fullName,
+      valuePerHour: user.valuePerHour,
+      hoursWorked: user.hoursWorked,
+      userType: user.userType,
+    });
+  });
 
   res.send(processedDataArray);
   return 0;
@@ -347,7 +347,6 @@ app.post("/startWorkRoutine", async (req, res) => {
     processedDataUpdateTimeStampStatus = JSON.parse(
       JSON.stringify(dataUpdateTimeStampStatus.data)
     ).setTimeStamp;
-    
   } catch (err) {
     res.send({ status: false });
 
@@ -386,7 +385,8 @@ app.post("/endWorkRoutine", async (req, res) => {
 
     if (processedDataUserTimeStamp != 0) {
       console.log("Entrei");
-      calculatedWorkedJourney = parseInt(req.body.timeStamp) - processedDataUserTimeStamp;
+      calculatedWorkedJourney =
+        parseInt(req.body.timeStamp) - processedDataUserTimeStamp;
 
       hoursWorked = processedDataUserhoursWorked + calculatedWorkedJourney;
 
@@ -400,7 +400,7 @@ app.post("/endWorkRoutine", async (req, res) => {
         },
       });
     } else {
-      res.send({ status: false});
+      res.send({ status: false });
 
       return 0;
     }
@@ -408,7 +408,6 @@ app.post("/endWorkRoutine", async (req, res) => {
 
   try {
     await DBOperations();
-
   } catch (err) {
     res.send({ status: false });
 
@@ -424,10 +423,7 @@ app.post("/delegateTask", async (req, res) => {
     processedDataDelegateTaskStatus,
     dataAllTasks,
     processedDataAllTasks,
-    taskName,
     taskId;
-
-  console.log(req.body);
 
   //Create task function:
   async function CreateTask() {
@@ -436,12 +432,11 @@ app.post("/delegateTask", async (req, res) => {
         "mutation CreateTask($name: String!) {createTask(name: $name) {id}}",
       variables: { name: req.body.name },
     });
-
     taskId = JSON.parse(JSON.stringify(taskId.data)).createTask.id;
 
     await apolloServer.executeOperation({
       query:
-        "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String, $status: String) {updateTask(id: $updateTaskId, description: $description, github_url: $githubUrl, status: $status)}",
+        "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String, $status: String) {updateTask(id: $updateTaskId, description: $description, githubUrl: $githubUrl, status: $status)}",
       variables: {
         updateTaskId: taskId,
         description: req.body.description,
@@ -478,6 +473,7 @@ app.post("/delegateTask", async (req, res) => {
         "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
       variables: { userId: req.body.userId, taskId: taskId },
     });
+    console.log(dataDelegateTaskStatus);
   }
   try {
     await DBOperations();
@@ -521,7 +517,7 @@ app.get("/getUsersByTeam", async (req, res) => {
   processedData
     .filter((user) => user.team === req.query.team)
     .forEach((user) => {
-      usersInTeam.push({fullName : user.fullName, userId : user.id});
+      usersInTeam.push({ fullName: user.fullName, userId: user.id });
     });
 
   if (processedData.length > 0) {
@@ -546,13 +542,16 @@ app.get("/getTasksByUser", async (req, res) => {
 
     processedData = JSON.parse(JSON.stringify(data.data)).getUserById.tasks;
 
-    for(var i = 0; i < processedData.length; i++){
+    for (var i = 0; i < processedData.length; i++) {
       dataTasks = await apolloServer.executeOperation({
-        query: "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns github_url}}",
-        variables: { id:  processedData[i]},
+        query:
+          "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns githubUrl}}",
+        variables: { id: processedData[i] },
       });
 
-      processedDataTasks.push(JSON.parse(JSON.stringify(dataTasks.data)).getTaskById);
+      processedDataTasks.push(
+        JSON.parse(JSON.stringify(dataTasks.data)).getTaskById
+      );
     }
   }
   try {
@@ -575,10 +574,10 @@ app.get("/getTasksByTeam", async (req, res) => {
   //Remove duplicates:
   function removeDuplicates(arr) {
     var unique = [];
-    arr.forEach(element => {
-        if (!unique.includes(element)) {
-            unique.push(element);
-        }
+    arr.forEach((element) => {
+      if (!unique.includes(element)) {
+        unique.push(element);
+      }
     });
     return unique;
   }
@@ -593,28 +592,29 @@ app.get("/getTasksByTeam", async (req, res) => {
     processedData = JSON.parse(JSON.stringify(data.data)).Users;
 
     processedData
-    .filter((user) => user.team === req.query.team)
-    .forEach((user) => {
-      tasksIdInTeam.push(user.tasks);
-    });
+      .filter((user) => user.team === req.query.team)
+      .forEach((user) => {
+        tasksIdInTeam.push(user.tasks);
+      });
 
     if (processedData.length > 0) {
+      tasksIdInTeam = removeDuplicates(tasksIdInTeam.flat());
 
-      tasksIdInTeam = removeDuplicates(tasksIdInTeam.flat())
-
-      for(var i = 0; i < tasksIdInTeam.length; i++){
+      for (var i = 0; i < tasksIdInTeam.length; i++) {
         tasksInTeam = await apolloServer.executeOperation({
-          query: "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status github_url}}",
-          variables: { id: tasksIdInTeam[i]},
+          query:
+            "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status githubUrl}}",
+          variables: { id: tasksIdInTeam[i] },
         });
 
-        processedTasksInTeam.push(JSON.parse(JSON.stringify(tasksInTeam.data)).getTaskById);
+        processedTasksInTeam.push(
+          JSON.parse(JSON.stringify(tasksInTeam.data)).getTaskById
+        );
       }
     }
   }
   try {
     await DBOperations();
-
   } catch (err) {
     res.send({ status: false });
 
@@ -630,10 +630,10 @@ app.put("/changeTaskStatus", async (req, res) => {
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
-      query: "mutation UpdateTask($updateTaskId: ID!, $status: String) {updateTask(id: $updateTaskId, status: $status)}",
+      query:
+        "mutation UpdateTask($updateTaskId: ID!, $status: String) {updateTask(id: $updateTaskId, status: $status)}",
       variables: { updateTaskId: req.body.taskId, status: "Completed" },
     });
-
   }
   try {
     await DBOperations();

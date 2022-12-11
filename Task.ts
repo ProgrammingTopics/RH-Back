@@ -5,5 +5,5 @@ export const Task = mongoose.model("Task", {
   description: String,
   status: String,
   assigns: String,
-  github_url: String,
+  githubUrl: String,
 });
