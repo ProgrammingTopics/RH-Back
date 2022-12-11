@@ -58,6 +58,8 @@ app.use(
 
 //REGISTER USER ROUTE:
 app.post("/signUp", (req, res) => {
+  let data, precessedData;
+
   //DataBase operations:
   async function DBOperations() {
     await apolloServer.executeOperation({
@@ -243,23 +245,49 @@ app.delete("/deleteUser", async (req, res) => {
 
 //EDIT USER DATA ROUTE:
 app.put("/editUser", async (req, res) => {
-  let dataEditUserStatus, processedDataEditUserStatus;
+  let dataEditUserStatus, processedDataEditUserStatus, dataUser, processedDataUser;
 
   //DataBase operations:
   async function DBOperations() {
-    dataEditUserStatus = await apolloServer.executeOperation({
+    dataUser = await apolloServer.executeOperation({
       query:
-        "mutation Mutation($updateUserId: ID!, $email: String, $role: String, $team: String, $userType: String, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}",
-      variables: {
-        updateUserId: req.body.userId,
-        email: req.body.email,
-        role: req.body.role,
-        team: req.body.team,
-        userType: req.body.userType,
-        fullName: req.body.fullName,
-        valuePerHour: parseInt(req.body.valuePerHour),
-      },
+        "query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id hoursWorked}}",
+      variables: { id: req.query.userId },
     });
+    
+    processedDataUser = JSON.parse(
+      JSON.stringify(dataEditUserStatus.data)
+    ).getUserById.userType;
+
+    if(req.body.userType){
+      dataEditUserStatus = await apolloServer.executeOperation({
+        query:
+          "mutation Mutation($updateUserId: ID!, $email: String!, $role: String, $team: String, $userType: String, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}",
+        variables: {
+          updateUserId: req.body.userId,
+          email: req.body.email,
+          role: req.body.role,
+          team: req.body.team,
+          userType: processedDataUser,
+          fullName: req.body.fullName,
+          valuePerHour: parseInt(req.body.valuePerHour),
+        },
+      });
+    }else{
+      dataEditUserStatus = await apolloServer.executeOperation({
+        query:
+          "mutation Mutation($updateUserId: ID!, $email: String!, $role: String, $team: String, $userType: String, $fullName: String, $valuePerHour: Int) {updateUser(id: $updateUserId, email: $email, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour)}",
+        variables: {
+          updateUserId: req.body.userId,
+          email: req.body.email,
+          role: req.body.role,
+          team: req.body.team,
+          userType: req.body.userType,
+          fullName: req.body.fullName,
+          valuePerHour: parseInt(req.body.valuePerHour),
+        },
+      });
+    }
   }
   try {
     await DBOperations();
@@ -268,6 +296,7 @@ app.put("/editUser", async (req, res) => {
     processedDataEditUserStatus = JSON.parse(
       JSON.stringify(dataEditUserStatus.data)
     ).updateUser;
+
   } catch (err) {
     res.send({ status: false });
 
