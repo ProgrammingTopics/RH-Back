@@ -58,6 +58,11 @@ export const resolvers = {
             return updated;
         },
 
+        async setTimeHoursWorked(_, {id,lastTimeStamp, hoursWorked}){
+            const updated = (await User.updateOne({_id:id}, {hoursWorked: hoursWorked,lastTimeStamp: lastTimeStamp })).modifiedCount;
+            return updated;
+        },
+
         async giveUserTask(_,{userID, taskID}){         //Insert a new task in User.tasks and a new assign in Task.assigns
             const newTask = (await Task.findById(taskID));
             const newUser = (await User.findById(userID));

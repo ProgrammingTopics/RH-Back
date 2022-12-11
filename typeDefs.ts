@@ -62,6 +62,7 @@ type Mutation {
     updateUser(id: ID!, email: String, role: String, team: String, userType: String, 
         fullName: String, valuePerHour: Int): Boolean
     setTimeStamp(id: ID!, lastTimeStamp: Int): Boolean
+    setTimeHoursWorked(id: ID!, lastTimeStamp: Int, hoursWorked: Int): Boolean
     giveUserTask(userID: ID!, taskID: ID!): Boolean
 
     createTeam(name: String!, RHManager: String!): Team!

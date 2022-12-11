@@ -296,9 +296,11 @@ app.post("/initialWorkRoutine", async (req, res) => {
 
     processedDataUserTimeStamp = JSON.parse(
       JSON.stringify(dataUserTimeStamp.data)
-    ).GetUserById.id;
+    ).getUserById.lastTimeStamp;
 
-    if(processedDataUserTimeStamp == null){
+    console.log(processedDataUserTimeStamp);
+
+    if(processedDataUserTimeStamp == 0){
       dataUpdateTimeStampStatus = await apolloServer.executeOperation({
         query:
           "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
@@ -308,7 +310,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
         },
       });
     }else{
-      res.send({ status: false });
+      //res.send({ status: false });
       return 0;
     }
   }
@@ -318,7 +320,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
     //Collected data:
     processedDataUpdateTimeStampStatus = JSON.parse(
       JSON.stringify(dataUpdateTimeStampStatus.data)
-    ).updateUser;
+    ).setTimeStamp;
   } catch (err) {
     res.send({ status: false });
 
@@ -326,6 +328,76 @@ app.post("/initialWorkRoutine", async (req, res) => {
   }
 
   res.send({ status: processedDataUpdateTimeStampStatus });
+});
+
+//SET FINAL WORK ROUTINE:
+app.post('/closedWorkRoutine',async (req, res) => {
+  let dataUpdateTimeStampStatus, processedDataUpdateTimeStampStatus, 
+  dataUserTimeStamp, processedDataUserTimeStamp, processedDataUserhoursWorked, calculatedWorkedJourney, hoursWorked;
+
+  async function DBOperations() {
+    dataUserTimeStamp = await apolloServer.executeOperation({
+      query:
+        "query GetUserById($id: ID!) {getUserById(ID: $id) {lastTimeStamp hoursWorked}}",
+      variables: {
+        id: req.body.userId
+      },
+    });
+
+    console.log(dataUserTimeStamp);
+    processedDataUserTimeStamp = JSON.parse(
+      JSON.stringify(dataUserTimeStamp.data)
+    ).getUserById.lastTimeStamp;
+
+    console.log(processedDataUserTimeStamp);
+
+    processedDataUserhoursWorked = JSON.parse(
+      JSON.stringify(dataUserTimeStamp.data)
+      ).getUserById.hoursWorked;
+
+    console.log(processedDataUserhoursWorked);
+
+    if(processedDataUserTimeStamp != 0){
+      console.log("Entrei");
+      calculatedWorkedJourney = parseInt(req.body.TimeStamp) - processedDataUserTimeStamp;
+      console.log(calculatedWorkedJourney);
+      const date= new Date(calculatedWorkedJourney);
+      hoursWorked = date.getHours();
+      if(hoursWorked > 8)
+        hoursWorked = 8;
+      hoursWorked += processedDataUserhoursWorked;
+      console.log(hoursWorked)
+
+        processedDataUpdateTimeStampStatus = await apolloServer.executeOperation({
+          query: "mutation Mutation($Id: ID!, $hoursWorked: Int, $lastTimeStamp: Int) {setTimeStamp(id: $Id, lastTimeStamp: $lastTimeStamp)setTimeHoursWorked(id: $Id, hoursWorked: $hoursWorked)}",
+          variables:{
+            Id: req.body.userId,
+            lastTimeStamp: 0,
+            hoursWorked: hoursWorked
+          }
+        })
+        console.log(processedDataUpdateTimeStampStatus);
+    }else{
+      //res.send({ status: false});
+      return 0; 
+    }
+  }
+
+  try {
+    await DBOperations();
+
+    //Collected data:
+    processedDataUpdateTimeStampStatus = JSON.parse(
+      JSON.stringify(dataUpdateTimeStampStatus.data)
+    );
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  res.send({ status: processedDataUpdateTimeStampStatus });
+ 
 });
 
 //TO DELEGATE TASK ROUTE:
