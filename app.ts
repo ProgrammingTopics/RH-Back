@@ -365,8 +365,7 @@ app.post("/endWorkRoutine", async (req, res) => {
     processedDataUserTimeStamp,
     processedDataUserhoursWorked,
     calculatedWorkedJourney,
-    hoursWorked,
-    test;
+    hoursWorked;
 
   async function DBOperations() {
     dataUserTimeStamp = await apolloServer.executeOperation({
@@ -391,7 +390,7 @@ app.post("/endWorkRoutine", async (req, res) => {
 
       hoursWorked = processedDataUserhoursWorked + calculatedWorkedJourney;
 
-      test = await apolloServer.executeOperation({
+      await apolloServer.executeOperation({
         query:
           "mutation Mutation($id: ID!, $hoursWorked: Int, $lastTimeStamp: Int) {setTimeStamp(id: $id, lastTimeStamp: $lastTimeStamp) setTimeHoursWorked(id: $id, hoursWorked: $hoursWorked)}",
         variables: {
@@ -534,27 +533,36 @@ app.get("/getUsersByTeam", async (req, res) => {
 
 //GET TASKS BY USER;
 app.get("/getTasksByUser", async (req, res) => {
-  let data, processedData;
-  console.log(req.query.userId);
+  let data, processedData, dataTasks;
+  let processedDataTasks = [];
+
   //DataBase operations:
   async function DBOperations() {
     data = await apolloServer.executeOperation({
       query: "query GetUserById($id: ID!) {getUserById(ID: $id) {tasks}}",
       variables: { id: req.query.userId },
     });
+
+    processedData = JSON.parse(JSON.stringify(data.data)).getUserById.tasks;
+
+    for(var i = 0; i < processedData.length; i++){
+      dataTasks = await apolloServer.executeOperation({
+        query: "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns github_url}}",
+        variables: { id:  processedData[i]},
+      });
+
+      processedDataTasks.push(JSON.parse(JSON.stringify(dataTasks.data)).getTaskById);
+    }
   }
   try {
     await DBOperations();
-
-    //Collected data:
-    processedData = JSON.parse(JSON.stringify(data.data)).getUserById.tasks;
   } catch (err) {
     res.send({ status: false });
 
     return 0;
   }
 
-  res.send(processedData);
+  res.send(processedDataTasks);
 });
 
 app.listen(port, () => {
