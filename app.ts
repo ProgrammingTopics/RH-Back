@@ -529,7 +529,7 @@ app.get("/getUsersByTeam", async (req, res) => {
   processedData
     .filter((user) => user.team === req.query.team)
     .forEach((user) => {
-      usersInTeam.push({ fullName: user.fullName, userId: user.id });
+      usersInTeam.push({fullName : user.fullName, userId : user.id});
     });
 
   if (processedData.length > 0) {
