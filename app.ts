@@ -501,8 +501,8 @@ app.post("/delegateTask", async (req, res) => {
   res.send({ status: processedDataDelegateTaskStatus });
 });
 
-//GET TEAM BY NAME:
-app.get("/getTeamByName", async (req, res) => {
+//GET USERS BY TEAM:
+app.get("/getUsersByTeam", async (req, res) => {
   let data, processedData, usersInTeam;
 
   //DataBase operations:
@@ -528,6 +528,7 @@ app.get("/getTeamByName", async (req, res) => {
   for (var i = 0; i < processedData.length; i++) {
     if (processedData[i].team == req.query.team) {
       usersInTeam.push({fullName: processedData[i].fullName});
+      res.send(usersInTeam);
     } else if (i === processedData.length - 1) {
       res.send({ status: false });
       return 0;
