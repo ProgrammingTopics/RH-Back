@@ -97,7 +97,7 @@ app.post("/signIn", async (req, res) => {
   async function DBOperations() {
     data = await apolloServer.executeOperation({
       query:
-        "query Users {Users {id role team userType fullName password email}}",
+        "query Users {Users {id role team userType fullName password email lastTimeStamp}}",
       variables: {},
     });
   }
@@ -123,6 +123,7 @@ app.post("/signIn", async (req, res) => {
           userType: processedData[i].userType,
           fullName: processedData[i].fullName,
           userId: processedData[i].id,
+          lastTimeStamp: processedData[i].lastTimeStamp,
         });
         return 0;
       }
@@ -305,7 +306,7 @@ app.put("/editUser", async (req, res) => {
 });
 
 //SET INITIAL WORK ROUTINE:
-app.post("/initialWorkRoutine", async (req, res) => {
+app.post("/startWorkRoutine", async (req, res) => {
   let dataUpdateTimeStampStatus,
     processedDataUpdateTimeStampStatus,
     dataUserTimeStamp,
@@ -325,19 +326,17 @@ app.post("/initialWorkRoutine", async (req, res) => {
       JSON.stringify(dataUserTimeStamp.data)
     ).getUserById.lastTimeStamp;
 
-    console.log(processedDataUserTimeStamp);
-
     if (processedDataUserTimeStamp == 0) {
       dataUpdateTimeStampStatus = await apolloServer.executeOperation({
         query:
           "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
         variables: {
           setTimeStampId: req.body.userId,
-          lastTimeStamp: parseInt(req.body.TimeStamp),
+          lastTimeStamp: parseInt(req.body.timeStamp),
         },
       });
     } else {
-      //res.send({ status: false });
+      res.send({ status: false });
       return 0;
     }
   }
@@ -348,6 +347,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
     processedDataUpdateTimeStampStatus = JSON.parse(
       JSON.stringify(dataUpdateTimeStampStatus.data)
     ).setTimeStamp;
+    
   } catch (err) {
     res.send({ status: false });
 
@@ -358,7 +358,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
 });
 
 //SET FINAL WORK ROUTINE:
-app.post("/closedWorkRoutine", async (req, res) => {
+app.post("/endWorkRoutine", async (req, res) => {
   let dataUpdateTimeStampStatus,
     processedDataUpdateTimeStampStatus,
     dataUserTimeStamp,
@@ -376,7 +376,6 @@ app.post("/closedWorkRoutine", async (req, res) => {
       },
     });
 
-    console.log(dataUserTimeStamp);
     processedDataUserTimeStamp = JSON.parse(
       JSON.stringify(dataUserTimeStamp.data)
     ).getUserById.lastTimeStamp;
@@ -392,7 +391,7 @@ app.post("/closedWorkRoutine", async (req, res) => {
     if (processedDataUserTimeStamp != 0) {
       console.log("Entrei");
       calculatedWorkedJourney =
-        parseInt(req.body.TimeStamp) - processedDataUserTimeStamp;
+        parseInt(req.body.timeStamp) - processedDataUserTimeStamp;
       console.log(calculatedWorkedJourney);
       const date = new Date(calculatedWorkedJourney);
       hoursWorked = date.getHours();
@@ -411,7 +410,7 @@ app.post("/closedWorkRoutine", async (req, res) => {
       });
       console.log(processedDataUpdateTimeStampStatus);
     } else {
-      //res.send({ status: false});
+      res.send({ status: false});
       return 0;
     }
   }
