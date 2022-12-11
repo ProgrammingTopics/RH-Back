@@ -57,7 +57,7 @@ type Query {
 
 type Mutation {
     createUser(email: String!, password: String!, role: String!, team: String!, userType: String!, 
-        fullName: String!, valuePerHour: Int!): User!
+        fullName: String!, valuePerHour: Int!, lastTimeStamp: Int, hoursWorked: Int): User!
     deleteUser(id: ID!): Boolean
     updateUser(id: ID!, email: String, role: String, team: String, userType: String, 
         fullName: String, valuePerHour: Int): Boolean

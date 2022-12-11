@@ -64,7 +64,7 @@ app.post("/signUp", (req, res) => {
   async function DBOperations() {
     await apolloServer.executeOperation({
       query:
-        "mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}",
+        "mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour, lastTimeStamp: $lastTimeStamp, hoursWorked: $hoursWorked) {email fullName hoursWorked id password role tasks team userType valuePerHour lastTimeStamp hoursWorked}}",
       variables: {
         email: req.body.email,
         password: req.body.password,
@@ -73,6 +73,8 @@ app.post("/signUp", (req, res) => {
         userType: req.body.userType,
         fullName: req.body.fullName,
         valuePerHour: parseInt(req.body.valuePerHour),
+        lastTimeStamp: 0,
+        hoursWorked: 0,
       },
     });
   }
@@ -174,7 +176,7 @@ app.get("/getAllUsers", async (req, res) => {
   async function DBOperations() {
     data = await apolloServer.executeOperation({
       query:
-        "query Users {Users {id email role team fullName valuePerHour hoursWorked}}",
+        "query Users {Users {id email role team fullName valuePerHour hoursWorked userType}}",
       variables: {},
     });
   }
@@ -308,10 +310,7 @@ app.put("/editUser", async (req, res) => {
 
 //SET INITIAL WORK ROUTINE:
 app.post("/initialWorkRoutine", async (req, res) => {
-  let dataUpdateTimeStampStatus,
-    processedDataUpdateTimeStampStatus,
-    dataUserTimeStamp,
-    processedDataUserTimeStamp;
+  let dataUpdateTimeStampStatus, processedDataUpdateTimeStampStatus, dataUserTimeStamp, processedDataUserTimeStamp;
 
   //DataBase operations:
   async function DBOperations() {
@@ -319,15 +318,17 @@ app.post("/initialWorkRoutine", async (req, res) => {
       query:
         "query GetUserById($id: ID!) {getUserById(ID: $id) {lastTimeStamp}}",
       variables: {
-        id: req.body.userId,
+        id: req.body.userId
       },
     });
 
     processedDataUserTimeStamp = JSON.parse(
       JSON.stringify(dataUserTimeStamp.data)
-    ).GetUserById.id;
+    ).getUserById.lastTimeStamp;
 
-    if (processedDataUserTimeStamp == null) {
+    console.log(processedDataUserTimeStamp);
+
+    if(processedDataUserTimeStamp == null){
       dataUpdateTimeStampStatus = await apolloServer.executeOperation({
         query:
           "mutation Mutation($setTimeStampId: ID!, $lastTimeStamp: Int) {setTimeStamp(id: $setTimeStampId, lastTimeStamp: $lastTimeStamp)}",
@@ -336,7 +337,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
           lastTimeStamp: parseInt(req.body.TimeStamp),
         },
       });
-    } else {
+    }else{
       res.send({ status: false });
       return 0;
     }
@@ -347,7 +348,7 @@ app.post("/initialWorkRoutine", async (req, res) => {
     //Collected data:
     processedDataUpdateTimeStampStatus = JSON.parse(
       JSON.stringify(dataUpdateTimeStampStatus.data)
-    ).updateUser;
+    ).setTimeStamp;
   } catch (err) {
     res.send({ status: false });
 
@@ -355,6 +356,75 @@ app.post("/initialWorkRoutine", async (req, res) => {
   }
 
   res.send({ status: processedDataUpdateTimeStampStatus });
+});
+
+//SET FINAL WORK ROUTINE:
+app.post('/closedWorkRoutine',async (req, res) => {
+  let dataUpdateTimeStampStatus, processedDataUpdateTimeStampStatus, 
+  dataUserTimeStamp, processedDataUserTimeStamp, processedDataUserhoursWorked, calculatedWorkedJourney, hoursWorked;
+
+  async function DBOperations() {
+    dataUserTimeStamp = await apolloServer.executeOperation({
+      query:
+        "query GetUserById($id: ID!) {getUserById(ID: $id) {lastTimeStamp hoursWorked}}",
+      variables: {
+        id: req.body.userId
+      },
+    });
+
+    console.log(dataUserTimeStamp);
+    processedDataUserTimeStamp = JSON.parse(
+      JSON.stringify(dataUserTimeStamp.data)
+    ).getUserById.lastTimeStamp;
+
+    console.log(processedDataUserTimeStamp);
+
+    processedDataUserhoursWorked = JSON.parse(
+      JSON.stringify(dataUserTimeStamp.data)
+      ).getUserById.housWorked;
+
+    if(processedDataUserTimeStamp != null){
+      console.log("Entrei");
+      calculatedWorkedJourney = parseInt(req.body.TimeStamp) - processedDataUserTimeStamp;
+      console.log(calculatedWorkedJourney);
+      const date= new Date(calculatedWorkedJourney);
+      hoursWorked = date.getHours();
+      if(hoursWorked > 8){
+        hoursWorked = 8;
+      }
+      hoursWorked += processedDataUserhoursWorked;
+      console.log(processedDataUserhoursWorked)
+
+        processedDataUpdateTimeStampStatus = await apolloServer.executeOperation({
+          query: "mutation Mutation($Id: ID!, $housWorked: Int, $lastTimeStamp: Int) {setTimeStamp(id: $Id, lastTimeStamp: $lastTimeStamp)setTimeHoursWorked(id: $Id, housWorked: $housWorked)}",
+          variables:{
+            Id: req.body.userId,
+            lastTimeStamp: null,
+            housWorked: hoursWorked
+          }
+        })
+        console.log(processedDataUpdateTimeStampStatus);
+    }else{
+      res.send({ status: false });
+      return 0; 
+    }
+  }
+
+  try {
+    await DBOperations();
+
+    //Collected data:
+    processedDataUpdateTimeStampStatus = JSON.parse(
+      JSON.stringify(dataUpdateTimeStampStatus.data)
+    );
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  res.send({ status: processedDataUpdateTimeStampStatus });
+ 
 });
 
 //TO DELEGATE TASK ROUTE:
