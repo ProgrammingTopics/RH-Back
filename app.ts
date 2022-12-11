@@ -58,11 +58,10 @@ app.use(
 
 //REGISTER USER ROUTE:
 app.post("/signUp", (req, res) => {
-  let data, processedData;
 
   //DataBase operations:
   async function DBOperations() {
-    data = await apolloServer.executeOperation({
+    await apolloServer.executeOperation({
       query:
         "mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour) {email fullName hoursWorked id password role tasks team userType valuePerHour}}",
       variables: {
@@ -78,8 +77,6 @@ app.post("/signUp", (req, res) => {
   }
   try {
     DBOperations();
-
-    processedData = JSON.parse(JSON.stringify(data.data)).Users;
   } catch (err) {
     res.send({ status: false });
 
@@ -143,7 +140,7 @@ app.get("/getUserByID", async (req, res) => {
     data = await apolloServer.executeOperation({
       query:
         "query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id}}",
-      variables: { id: req.body.userID },
+      variables: { id: req.query.userID },
     });
   }
   try {
@@ -208,13 +205,13 @@ app.delete("/deleteUser", async (req, res) => {
     data = await apolloServer.executeOperation({
       query:
         "query getUserById($id: ID!) {getUserById(ID: $id) {email role team userType fullName valuePerHour id hoursWorked}}",
-      variables: { id: req.body.userID },
+      variables: { id: req.query.userID },
     });
 
     dataDeletedUserStatus = await apolloServer.executeOperation({
       query:
         "mutation DeleteUser($deleteUserId: ID!) {deleteUser(id: $deleteUserId)}",
-      variables: { deleteUserId: req.body.userID },
+      variables: { deleteUserId: req.query.userID },
     });
   }
   try {
