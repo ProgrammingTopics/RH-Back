@@ -545,7 +545,7 @@ app.get("/getTasksByUser", async (req, res) => {
     for (var i = 0; i < processedData.length; i++) {
       dataTasks = await apolloServer.executeOperation({
         query:
-          "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns githubUrl}}",
+          "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns githubUrl id}}",
         variables: { id: processedData[i] },
       });
 
