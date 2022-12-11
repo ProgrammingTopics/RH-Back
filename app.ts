@@ -86,11 +86,7 @@ app.post("/signUp", (req, res) => {
     return 0;
   }
 
-  if(processedData){
-    res.send({ status: true });
-  }else{
-    res.send({ status: false });
-  }
+  res.send({ status: true });
 
 });
 
