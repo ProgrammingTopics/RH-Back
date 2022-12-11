@@ -68,7 +68,7 @@ app.post("/signUp", (req, res) => {
         password: req.body.password,
         role: req.body.role,
         team: req.body.team,
-        userType: req.body.userType,
+        userType: "Manager",
         fullName: req.body.fullName,
         valuePerHour: parseInt(req.body.valuePerHour),
       },
