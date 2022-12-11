@@ -565,6 +565,65 @@ app.get("/getTasksByUser", async (req, res) => {
   res.send(processedDataTasks);
 });
 
+//GET TASKS BY TEAM:
+app.get("/getTasksByTeam", async (req, res) => {
+  let data, processedData, tasksInTeam;
+  let tasksIdInTeam = [];
+  let processedTasksInTeam = [];
+
+  //Remove duplicates:
+  function removeDuplicates(arr) {
+    var unique = [];
+    arr.forEach(element => {
+        if (!unique.includes(element)) {
+            unique.push(element);
+        }
+    });
+    return unique;
+  }
+
+  //DataBase operations:
+  async function DBOperations() {
+    data = await apolloServer.executeOperation({
+      query: "query Users {Users {team tasks}}",
+      variables: {},
+    });
+
+    processedData = JSON.parse(JSON.stringify(data.data)).Users;
+
+    processedData
+    .filter((user) => user.team === req.query.team)
+    .forEach((user) => {
+      tasksIdInTeam.push(user.tasks);
+    });
+
+    if (processedData.length > 0) {
+
+      tasksIdInTeam = removeDuplicates(tasksIdInTeam.flat())
+
+      for(var i = 0; i < tasksIdInTeam.length; i++){
+        tasksInTeam = await apolloServer.executeOperation({
+          query: "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status github_url}}",
+          variables: { id: tasksIdInTeam[i]},
+        });
+
+        processedTasksInTeam.push(JSON.parse(JSON.stringify(tasksInTeam.data)).getTaskById);
+      }
+    }
+  }
+  try {
+    await DBOperations();
+
+  } catch (err) {
+    res.send({ status: false });
+
+    return 0;
+  }
+
+  res.send(processedTasksInTeam);
+  return 0;
+});
+
 app.listen(port, () => {
   console.log(`Timezones by location application is running on port ${port}.`);
 });
