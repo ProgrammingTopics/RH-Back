@@ -72,7 +72,7 @@ app.post("/signUp", (req, res) => {
         team: req.body.team,
         userType: req.body.userType,
         fullName: req.body.fullName,
-        valuePerHour: req.body.valuePerHour,
+        valuePerHour: parseInt(req.body.valuePerHour),
       },
     });
   }
