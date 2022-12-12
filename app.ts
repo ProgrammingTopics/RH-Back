@@ -58,10 +58,22 @@ app.use(
 
 //REGISTER USER ROUTE:
 app.post("/signUp", (req, res) => {
-  let data, precessedData;
+  let data, processedData;
 
   //DataBase operations:
   async function DBOperations() {
+
+    data = await apolloServer.executeOperation({
+      query: "query GetUserByEmail($email: String!) {getUserByEmail(email: $email) {email}}",
+      variables: {email: req.body.email}
+    });
+    processedData = JSON.parse(JSON.stringify(data)).getUserByEmail;
+
+    if(data.data){
+      return 0;
+    }
+    
+    
     await apolloServer.executeOperation({
       query:
         "mutation CreateUser($email: String!, $password: String!, $role: String!, $team: String!, $userType: String!, $fullName: String!, $valuePerHour: Int!, $lastTimeStamp: Int, $hoursWorked: Int) {createUser(email: $email, password: $password, role: $role, team: $team, userType: $userType, fullName: $fullName, valuePerHour: $valuePerHour, lastTimeStamp: $lastTimeStamp, hoursWorked: $hoursWorked) {email fullName hoursWorked id password role tasks team userType valuePerHour lastTimeStamp hoursWorked}}",
@@ -384,7 +396,7 @@ app.post("/endWorkRoutine", async (req, res) => {
     ).getUserById.hoursWorked;
 
     if (processedDataUserTimeStamp != 0) {
-      console.log("Entrei");
+
       calculatedWorkedJourney =
         parseInt(req.body.timeStamp) - processedDataUserTimeStamp;
 

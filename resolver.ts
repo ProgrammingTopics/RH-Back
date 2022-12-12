@@ -17,6 +17,10 @@ export const resolvers = {
       return await Task.find();
     },
 
+    async getUserByEmail(_,{email}){
+        return await User.findOne({email: email});
+    },
+
     async getUserById(_, { ID }) {
       return await User.findById(ID);
     },

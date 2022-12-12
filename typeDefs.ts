@@ -47,6 +47,9 @@ export const typeDefs = gql`
     getTeamById(ID: ID!): Team!
     getTaskById(ID: ID!): Task!
 
+    getUserByEmail(email: String!): User!
+    getUserByLogin(email: String! password: String!): User!
+
     getTaskByUser(ID: ID): [Task]!
     getMembersByTeam(ID: ID): [User]!
   }
