@@ -417,61 +417,47 @@ app.post("/endWorkRoutine", async (req, res) => {
   res.send({ status: true });
 });
 
+app.post('/createTask', async(req,res)=>{
+  let dataCreateTaskStatus,
+    processedCreateTaskStatus;
+
+    //DataBase operations:
+    async function DBOperations() {
+      dataCreateTaskStatus = await apolloServer.executeOperation({
+        query:
+          "mutation Mutation($name: String!, $description: String, $status: String, $githubUrl: String) {createTask(name: $name, description: $description, status: $status, githubUrl: $githubUrl) {id name githubUrl description}}",
+        variables: {
+          name: req.body.name, 
+          description: req.body.description, 
+          status: "onGoing", 
+          githubUrl: req.body.githubUrl}
+      })
+    }
+
+    try{
+      await DBOperations();
+
+      //Collected data:
+      processedCreateTaskStatus = JSON.parse(JSON.stringify(dataCreateTaskStatus.data)
+      ).createTask;
+    }catch(err) {
+      res.send({status: false});
+      return 0;
+    }
+})
+
 //TO DELEGATE TASK ROUTE:
 app.post("/delegateTask", async (req, res) => {
   let dataDelegateTaskStatus,
-    processedDataDelegateTaskStatus,
-    dataAllTasks,
-    processedDataAllTasks,
-    taskId;
+    processedDataDelegateTaskStatus;
 
-  //Create task function:
-  async function CreateTask() {
-    taskId = await apolloServer.executeOperation({
-      query:
-        "mutation CreateTask($name: String!) {createTask(name: $name) {id}}",
-      variables: { name: req.body.name },
-    });
-    taskId = JSON.parse(JSON.stringify(taskId.data)).createTask.id;
-
-    await apolloServer.executeOperation({
-      query:
-        "mutation UpdateTask($updateTaskId: ID!, $description: String, $githubUrl: String, $status: String) {updateTask(id: $updateTaskId, description: $description, githubUrl: $githubUrl, status: $status)}",
-      variables: {
-        updateTaskId: taskId,
-        description: req.body.description,
-        githubUrl: req.body.githubUrl,
-        status: "onGoing",
-      },
-    });
-  }
 
   //DataBase operations:
   async function DBOperations() {
-    dataAllTasks = await apolloServer.executeOperation({
-      query: "query Tasks {Tasks {id name}}",
-      variables: {},
-    });
-
-    processedDataAllTasks = JSON.parse(JSON.stringify(dataAllTasks.data)).Tasks;
-
-    if (processedDataAllTasks.length == 0) {
-      CreateTask();
-    } else {
-      //Match the gave task name to an existing one to find the ID if it exists, else create a task with req informations.
-      for (var i = 0; i < processedDataAllTasks.length; i++) {
-        if (processedDataAllTasks[i].name == req.body.name) {
-          taskId = processedDataAllTasks[i].id;
-          break;
-        } else if (i === processedDataAllTasks.length - 1) {
-          CreateTask();
-        }
-      }
-    }
     dataDelegateTaskStatus = await apolloServer.executeOperation({
       query:
         "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
-      variables: { userId: req.body.userId, taskId: taskId },
+      variables: { userId: req.body.userId, taskId: req.body.taskId },
     });
     console.log(dataDelegateTaskStatus);
   }

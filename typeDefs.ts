@@ -83,7 +83,7 @@ export const typeDefs = gql`
     newMemberTeam(teamID: ID!, userID: ID!): Boolean
     defineTechLead(teamID: ID!, techID: ID!): Boolean
 
-    createTask(name: String!): Task!
+    createTask(name: String! description: String status: String, githubUrl: String,): Task!
     deleteTask(id: ID!): Boolean
     updateTask(
       id: ID!
@@ -93,6 +93,5 @@ export const typeDefs = gql`
       githubUrl: String
     ): Boolean
 
-    setTimeHoursWorked(id: ID!, hoursWorked: Int): Boolean
   }
 `;

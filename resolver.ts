@@ -164,8 +164,8 @@ export const resolvers = {
       return updated;
     },
 
-    async createTask(_, { name }) {
-      const newTask = new Task({ name });
+    async createTask(_, { name, description, status, githubUrl }) {
+      const newTask = new Task({ name, description, status, githubUrl });
       await newTask.save();
       return newTask;
     },
