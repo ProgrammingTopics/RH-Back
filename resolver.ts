@@ -101,14 +101,16 @@ export const resolvers = {
       const updated_user = (
         await User.updateOne({ _id: userID }, { $push: { tasks: taskID } })
       ).modifiedCount;
-      const updated_task = (
-        await Task.updateOne(
-          { _id: taskID },
-          { $push: { assigns: newUser._id } }
-        )
-      ).modifiedCount;
 
-      return updated_task && updated_user;
+      return updated_user ;
+    },
+
+    async giveTaskUser(_,{userID, taskID}){
+        const updated_task = (
+            await Task.updateOne({_id: taskID}, {assigns: userID})
+        ).modifiedCount;
+
+        return updated_task;
     },
 
     async createTeam(_, { name, RHManager }) {

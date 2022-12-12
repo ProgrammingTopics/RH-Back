@@ -445,37 +445,53 @@ app.post('/createTask', async(req,res)=>{
       return 0;
     }
 
-    res.send({status: processedCreateTaskStatus});
+    res.send({status: true,
+      id: processedCreateTaskStatus.id,
+      name: processedCreateTaskStatus.name,
+      githubUrl: processedCreateTaskStatus.githubUrl,
+      description: processedCreateTaskStatus.description
+    });
 })
 
 //TO DELEGATE TASK ROUTE:
 app.post("/delegateTask", async (req, res) => {
-  let dataDelegateTaskStatus,
-    processedDataDelegateTaskStatus;
+  let dataDelegateTaskStatus1,dataDelegateTaskStatus2,
+    processedDataDelegateTaskStatus1, processedDataDelegateTaskStatus2;
 
 
   //DataBase operations:
   async function DBOperations() {
-    dataDelegateTaskStatus = await apolloServer.executeOperation({
+    dataDelegateTaskStatus1 = await apolloServer.executeOperation({
       query:
         "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
       variables: { userId: req.body.userId, taskId: req.body.taskId },
     });
+
+    dataDelegateTaskStatus2 = await apolloServer.executeOperation({
+      query:"mutation GiveTaskUser($userId: ID!, $taskId: ID!) {giveTaskUser(UserID: $userId, taskID: $taskId)}",
+      variables: {userId: req.body.userId, taskId: req.body.taskId}
+    })
   }
   try {
     await DBOperations();
 
     //Collected data:
-    processedDataDelegateTaskStatus = JSON.parse(
-      JSON.stringify(dataDelegateTaskStatus.data)
+    processedDataDelegateTaskStatus1 = JSON.parse(
+      JSON.stringify(dataDelegateTaskStatus1.data)
     ).giveUserTask;
+
+    processedDataDelegateTaskStatus2 = JSON.parse(
+      JSON.stringify(dataDelegateTaskStatus2.data)
+    ).giveUserTask;
+
+    processedDataDelegateTaskStatus1 = processedDataDelegateTaskStatus1 && processedDataDelegateTaskStatus2;
   } catch (err) {
     res.send({ status: false });
 
     return 0;
   }
 
-  res.send({ status: processedDataDelegateTaskStatus });
+  res.send({ status: processedDataDelegateTaskStatus1 });
 });
 
 //GET USERS BY TEAM:

@@ -29,7 +29,7 @@ export const typeDefs = gql`
     name: String
     description: String
     status: String
-    assigns: [String]
+    assigns: String
     githubUrl: String
   }
 
@@ -76,6 +76,7 @@ export const typeDefs = gql`
     setTimeStamp(id: ID!, lastTimeStamp: Int): Boolean
     setTimeHoursWorked(id: ID!, lastTimeStamp: Int, hoursWorked: Int): Boolean
     giveUserTask(userID: ID!, taskID: ID!): Boolean
+    giveTaskUser(UserID: ID!, taskID: ID!): Boolean
 
     createTeam(name: String!, RHManager: String!): Team!
     deleteTeam(id: ID!): Boolean
