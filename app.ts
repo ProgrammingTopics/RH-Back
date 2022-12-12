@@ -445,15 +445,14 @@ app.post("/delegateTask", async (req, res) => {
       },
     });
   }
-
   //DataBase operations:
   async function DBOperations() {
     dataAllTasks = await apolloServer.executeOperation({
       query: "query Tasks {Tasks {id name}}",
       variables: {},
     });
-
     processedDataAllTasks = JSON.parse(JSON.stringify(dataAllTasks.data)).Tasks;
+    console.log(processedDataAllTasks);
 
     if (processedDataAllTasks.length == 0) {
       CreateTask();
@@ -473,7 +472,6 @@ app.post("/delegateTask", async (req, res) => {
         "mutation GiveUserTask($userId: ID!, $taskId: ID!) {giveUserTask(userID: $userId, taskID: $taskId)}",
       variables: { userId: req.body.userId, taskId: taskId },
     });
-    console.log(dataDelegateTaskStatus);
   }
   try {
     await DBOperations();
@@ -539,16 +537,13 @@ app.get("/getTasksByUser", async (req, res) => {
       query: "query GetUserById($id: ID!) {getUserById(ID: $id) {tasks}}",
       variables: { id: req.query.userId },
     });
-
     processedData = JSON.parse(JSON.stringify(data.data)).getUserById.tasks;
-
     for (var i = 0; i < processedData.length; i++) {
       dataTasks = await apolloServer.executeOperation({
         query:
-          "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns githubUrl id}}",
+          "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status githubUrl id}}",
         variables: { id: processedData[i] },
       });
-
       processedDataTasks.push(
         JSON.parse(JSON.stringify(dataTasks.data)).getTaskById
       );
@@ -562,6 +557,11 @@ app.get("/getTasksByUser", async (req, res) => {
     return 0;
   }
 
+  processedDataTasks.forEach((task) => {
+    delete Object.assign(task, {
+      ["taskId"]: task["id"],
+    })["id"];
+  });
   res.send(processedDataTasks);
 });
 
@@ -603,7 +603,7 @@ app.get("/getTasksByTeam", async (req, res) => {
       for (var i = 0; i < tasksIdInTeam.length; i++) {
         tasksInTeam = await apolloServer.executeOperation({
           query:
-            "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status githubUrl}}",
+            "query GetTaskById($id: ID!) {getTaskById(ID: $id) {name description status assigns githubUrl}}",
           variables: { id: tasksIdInTeam[i] },
         });
 
