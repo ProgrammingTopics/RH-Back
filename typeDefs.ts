@@ -1,8 +1,7 @@
 import { gql } from "apollo-server-express";
 
 export const typeDefs = gql`
-
-type User {
+  type User {
     id: ID!
     email: String!
     password: String!
@@ -15,31 +14,31 @@ type User {
     lastTimeStamp: Int
     closedTasks: Int
     tasks: [String]
-}
+  }
 
-type Team{
+  type Team {
     id: ID!
     name: String!
     RHManager: String
     techLead: String
     members: [String]
-}
+  }
 
-type Task{
+  type Task {
     id: ID!
     name: String
     description: String
     status: String
     assigns: [String]
-    github_url: String
-}
+    githubUrl: String
+  }
 
-type Card{
+  type Card {
     id: ID!
-    name:String
-}
+    name: String
+  }
 
-type Query {
+  type Query {
     Name: String!
     Users: [User!]!
     Teams: [Team!]!
@@ -50,17 +49,30 @@ type Query {
 
     getTaskByUser(ID: ID): [Task]!
     getMembersByTeam(ID: ID): [User]!
-    
-}
+  }
 
-
-
-type Mutation {
-    createUser(email: String!, password: String!, role: String!, team: String!, userType: String!, 
-        fullName: String!, valuePerHour: Int!): User!
+  type Mutation {
+    createUser(
+      email: String!
+      password: String!
+      role: String!
+      team: String!
+      userType: String!
+      fullName: String!
+      valuePerHour: Int!
+      lastTimeStamp: Int
+      hoursWorked: Int
+    ): User!
     deleteUser(id: ID!): Boolean
-    updateUser(id: ID!, email: String, role: String, team: String, userType: String, 
-        fullName: String, valuePerHour: Int): Boolean
+    updateUser(
+      id: ID!
+      email: String
+      role: String
+      team: String
+      userType: String
+      fullName: String
+      valuePerHour: Int
+    ): Boolean
     setTimeStamp(id: ID!, lastTimeStamp: Int): Boolean
     setTimeHoursWorked(id: ID!, lastTimeStamp: Int, hoursWorked: Int): Boolean
     giveUserTask(userID: ID!, taskID: ID!): Boolean
@@ -73,11 +85,14 @@ type Mutation {
 
     createTask(name: String!): Task!
     deleteTask(id: ID!): Boolean
-    updateTask(id: ID!, name: String, description: String,status: String, github_url: String): Boolean
+    updateTask(
+      id: ID!
+      name: String
+      description: String
+      status: String
+      githubUrl: String
+    ): Boolean
 
-
-}
-
+    setTimeHoursWorked(id: ID!, hoursWorked: Int): Boolean
+  }
 `;
-
-
