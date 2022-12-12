@@ -502,8 +502,8 @@ app.post("/delegateTask", async (req, res) => {
 
     return 0;
   }
-
-  res.send({ status: processedDataDelegateTaskStatus1 });
+  console.log(processedDataDelegateTaskStatus1);
+  res.send({ status: true });
 });
 
 //GET USERS BY TEAM:
