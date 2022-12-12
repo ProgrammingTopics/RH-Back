@@ -444,6 +444,8 @@ app.post('/createTask', async(req,res)=>{
       res.send({status: false});
       return 0;
     }
+
+    res.send({status: processedCreateTaskStatus});
 })
 
 //TO DELEGATE TASK ROUTE:
